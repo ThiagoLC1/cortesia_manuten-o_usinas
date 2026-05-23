@@ -128,6 +128,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pessoa-btn:hover{border-color:var(--y);background:var(--ylight);}
 /* Role App Interfaces */
 .role-app{display:none;min-height:100vh;background:var(--bg);}
+/* Barra de topo do role-app */
+.ra-topbar{
+  background:linear-gradient(135deg,#0d1a36,var(--p));
+  color:#fff;padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:3px solid var(--y);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.ra-topbar-info{display:flex;align-items:center;gap:10px;}
+.ra-topbar-logo{height:34px;width:auto;}
+.ra-topbar-name{font-size:.82rem;font-weight:700;line-height:1.2;}
+.ra-topbar-role{font-size:.68rem;color:var(--y);font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+.ra-btn-sair{
+  background:rgba(255,80,80,.18);border:1px solid rgba(255,100,100,.4);
+  color:#fca5a5;border-radius:8px;padding:6px 13px;
+  font-size:.75rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:5px;transition:all .15s;
+  white-space:nowrap;
+}
+.ra-btn-sair:hover{background:rgba(255,80,80,.32);color:#fff;}
 .ra-header{background:linear-gradient(135deg,#0d1a36,var(--p));color:#fff;padding:14px 18px;
   border-bottom:3px solid var(--y);}
 .ra-header h2{font-size:.95rem;font-weight:700;}
@@ -136,8 +156,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ra-tab{padding:10px 16px;font-size:.76rem;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;}
 .ra-tab.active{color:var(--y);border-bottom-color:var(--y);}
 .ra-tab:hover:not(.active){color:#fff;background:rgba(255,255,255,.07);}
-.ra-tab-sair{margin-left:auto;color:rgba(255,130,130,.8)!important;}
-.ra-tab-sair:hover{color:#f87171!important;background:rgba(255,80,80,.15)!important;}
 .ra-body{padding:14px;max-width:700px;margin:0 auto;}
 .ra-section{display:none;} .ra-section.active{display:block;}
 .ra-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
@@ -1099,13 +1117,23 @@ input[readonly]{background:#f8fafc;cursor:default;}
 <!-- APP LÍDER DE EQUIPE -->
 <!-- ══════════════════════════════════════════ -->
 <div id="lider-app" class="role-app">
+  <!-- Barra de topo -->
+  <div class="ra-topbar">
+    <div class="ra-topbar-info">
+      <img class="ra-topbar-logo" src="https://raw.githubusercontent.com/ThiagoLC1/cortesia_manuten-o_usinas/main/5SHoCc3xIimF.png" alt="CC"/>
+      <div>
+        <div class="ra-topbar-name" id="lider-topbar-nome">Líder</div>
+        <div class="ra-topbar-role">🦺 Líder de Equipe</div>
+      </div>
+    </div>
+    <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
+  </div>
   <div class="ra-tabs">
     <div class="ra-tab active" onclick="raTab('lider','painel')">🏠 Painel</div>
     <div class="ra-tab" onclick="raTab('lider','os')">📋 OS Abertas</div>
     <div class="ra-tab" onclick="raTab('lider','relatorio')">📊 Relatório</div>
     <div class="ra-tab" onclick="raTab('lider','equipe')">👷 Equipe</div>
     <div class="ra-tab" onclick="raTab('lider','preordem')">📝 Pré-ordem</div>
-    <div class="ra-tab ra-tab-sair" onclick="doLogout()" title="Sair do sistema">⎋</div>
   </div>
   <div class="ra-body">
 
@@ -1208,11 +1236,21 @@ input[readonly]{background:#f8fafc;cursor:default;}
 <!-- APP TÉCNICO / OPERACIONAL -->
 <!-- ══════════════════════════════════════════ -->
 <div id="tecnico-app" class="role-app">
+  <!-- Barra de topo -->
+  <div class="ra-topbar">
+    <div class="ra-topbar-info">
+      <img class="ra-topbar-logo" src="https://raw.githubusercontent.com/ThiagoLC1/cortesia_manuten-o_usinas/main/5SHoCc3xIimF.png" alt="CC"/>
+      <div>
+        <div class="ra-topbar-name" id="tecnico-topbar-nome">Técnico</div>
+        <div class="ra-topbar-role">🔧 Técnico / Operacional</div>
+      </div>
+    </div>
+    <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
+  </div>
   <div class="ra-tabs">
     <div class="ra-tab active" onclick="raTab('tecnico','meudo')">📅 Meu Dia</div>
     <div class="ra-tab" onclick="raTab('tecnico','minhasos')">📋 Minhas OS</div>
     <div class="ra-tab" onclick="raTab('tecnico','preordem')">📝 Pré-ordem</div>
-    <div class="ra-tab ra-tab-sair" onclick="doLogout()" title="Sair do sistema">⎋</div>
   </div>
   <div class="ra-body">
 
@@ -3866,9 +3904,14 @@ function raTab(app, section){
 function renderRoleApp(){
   if(USER_ROLE === 'lider'){
     mostrarRoleApp('lider');
+    // Preencher nome no topbar
+    const el = document.getElementById('lider-topbar-nome');
+    if(el && USER_PERSON) el.textContent = USER_PERSON.split(' ')[0];
     renderLiderPainel();
   } else if(USER_ROLE === 'tecnico'){
     mostrarRoleApp('tecnico');
+    const el = document.getElementById('tecnico-topbar-nome');
+    if(el && USER_PERSON) el.textContent = USER_PERSON.split(' ')[0];
     renderTecnicoDia();
   }
 }
