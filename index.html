@@ -113,6 +113,59 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .role-gestor{background:#dbeafe;color:#1e40af;}
 .role-lider{background:#fef3c7;color:#92400e;}
 .role-tecnico{background:#dcfce7;color:#166534;}
+/* PIN pad */
+.pin-display{font-size:1.8rem;text-align:center;letter-spacing:.5rem;color:var(--p);margin-bottom:16px;font-weight:700;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto;}
+.pin-key{padding:14px;font-size:1.1rem;font-weight:700;border:1.5px solid #e2e8f0;border-radius:10px;
+  background:#f8fafc;cursor:pointer;transition:all .12s;color:var(--p);}
+.pin-key:hover{background:var(--ylight);border-color:var(--y);}
+.pin-key:active{transform:scale(.94);}
+.pin-key-clear{background:#fee2e2;color:#dc2626;border-color:#fecaca;}
+.pin-key-ok{background:var(--y);color:var(--p);border-color:var(--yh);}
+.pessoa-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e2e8f0;
+  border-radius:9px;background:#f8fafc;cursor:pointer;font-size:.84rem;font-weight:600;color:var(--p);
+  transition:all .12s;text-align:left;width:100%;}
+.pessoa-btn:hover{border-color:var(--y);background:var(--ylight);}
+/* Role App Interfaces */
+.role-app{display:none;min-height:100vh;background:var(--bg);}
+.ra-header{background:linear-gradient(135deg,#0d1a36,var(--p));color:#fff;padding:14px 18px;
+  border-bottom:3px solid var(--y);}
+.ra-header h2{font-size:.95rem;font-weight:700;}
+.ra-header p{font-size:.72rem;color:rgba(255,255,255,.7);margin-top:2px;}
+.ra-tabs{display:flex;background:var(--p);border-bottom:3px solid var(--y);overflow-x:auto;}
+.ra-tab{padding:10px 16px;font-size:.76rem;font-weight:600;color:rgba(255,255,255,.6);
+  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;}
+.ra-tab.active{color:var(--y);border-bottom-color:var(--y);}
+.ra-tab:hover:not(.active){color:#fff;background:rgba(255,255,255,.07);}
+.ra-body{padding:14px;max-width:700px;margin:0 auto;}
+.ra-section{display:none;} .ra-section.active{display:block;}
+.ra-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.ra-card-title{font-size:.82rem;font-weight:700;color:var(--p);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.os-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.os-field-row.full{grid-template-columns:1fr;}
+.checklist-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.83rem;}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--p);}
+.ra-os-card{background:#fff;border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;margin-bottom:10px;
+  border-left:4px solid var(--p);}
+.ra-os-card.urgente{border-left-color:#dc2626;}
+.ra-os-card.andamento{border-left-color:#3b82f6;}
+.ra-os-num{font-size:.72rem;font-weight:700;color:var(--p);}
+.ra-os-desc{font-size:.85rem;font-weight:600;color:var(--txt);margin:3px 0;}
+.ra-os-meta{font-size:.72rem;color:var(--mut);}
+.ra-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;
+  font-size:.8rem;font-weight:700;border:none;cursor:pointer;transition:all .12s;}
+.ra-btn-primary{background:var(--y);color:var(--p);}
+.ra-btn-green{background:#dcfce7;color:#166534;}
+.ra-btn-red{background:#fee2e2;color:#991b1b;}
+.ra-btn-blue{background:#dbeafe;color:#1e40af;}
+.ra-empty{text-align:center;padding:30px 10px;color:var(--mut);font-size:.82rem;}
+.ra-equipe-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;
+  font-size:.72rem;font-weight:600;margin:3px;background:#f0f4ff;color:var(--p);border:1px solid #c7d2fe;}
+.ra-equipe-chip.livre{background:#fff5f5;color:#991b1b;border-color:#fecaca;}
+.pin-manage-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.83rem;}
+.pin-manage-row:last-child{border-bottom:none;}
+.pin-manage-row input{width:90px;padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.82rem;text-align:center;}
 .login-btn:disabled{opacity:.6;cursor:default;transform:none;}
 .login-err{color:#dc2626;font-size:.77rem;text-align:center;margin-top:10px;min-height:18px;}
 .btn-logout{background:rgba(255,192,0,.15)!important;color:var(--y)!important;border:1px solid rgba(255,192,0,.4)!important;font-size:.75rem!important;padding:5px 11px!important;}
@@ -420,16 +473,34 @@ input[readonly]{background:#f8fafc;cursor:default;}
       <button class="login-btn" id="lg-btn" onclick="doLogin()">Entrar como Gestor</button>
     </div>
 
-    <!-- STEP 2b: Líder / Técnico (código de acesso) -->
-    <div id="lg-step-codigo" style="display:none">
+    <!-- STEP 2b: Selecionar nome -->
+    <div id="lg-step-pessoa" style="display:none">
       <button class="login-back-btn" onclick="voltarStep1()">← Voltar</button>
       <p id="lg-perfil-label" style="font-size:.8rem;font-weight:700;color:var(--p);margin-bottom:10px;text-align:center"></p>
-      <div class="login-field">
-        <label>Código de Acesso</label>
-        <input type="password" id="lg-codigo" placeholder="Digite o código do grupo"
-               onkeydown="if(event.key==='Enter')doLoginCodigo()"/>
+      <p style="font-size:.75rem;color:#64748b;margin-bottom:10px">Selecione seu nome:</p>
+      <div id="lg-pessoa-list" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- STEP 2c: PIN pessoal -->
+    <div id="lg-step-pin" style="display:none">
+      <button class="login-back-btn" onclick="voltarPessoa()">← Voltar</button>
+      <p style="font-size:.85rem;font-weight:700;color:var(--p);margin-bottom:4px;text-align:center">Olá, <span id="lg-pin-nome" style="color:var(--y)"></span>!</p>
+      <p style="font-size:.74rem;color:#64748b;margin-bottom:14px;text-align:center">Digite seu PIN de 4 dígitos</p>
+      <div class="pin-display" id="lg-pin-display">○ ○ ○ ○</div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <button class="pin-key pin-key-clear" onclick="pinClear()">⌫</button>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key pin-key-ok" onclick="pinConfirmar()">✓</button>
       </div>
-      <button class="login-btn" id="lg-btn-cod" onclick="doLoginCodigo()">Entrar</button>
     </div>
 
     <div class="login-err" id="lg-err"></div>
@@ -968,8 +1039,14 @@ input[readonly]{background:#f8fafc;cursor:default;}
 <!-- ═══ CONFIG ═══ -->
 <div id="tab-config" style="display:none">
   <div class="settings-card">
-    <div class="card-title">🔐 Códigos de Acesso por Perfil</div>
-    <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">Defina os códigos que cada grupo usará para entrar no sistema. Compartilhe o código com os membros de cada perfil.</p>
+    <div class="card-title">🔑 PINs Individuais da Equipe</div>
+    <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">Defina ou redefina o PIN de 4 dígitos de cada membro. Na primeira entrada, o membro define o próprio PIN. Para redefinir, edite aqui.</p>
+    <div id="pin-manager-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+    <button class="btn btn-sec btn-sm" onclick="renderPinManager()">↺ Recarregar lista</button>
+  </div>
+  <div class="settings-card">
+    <div class="card-title">🔐 Códigos de Acesso por Perfil (legado)</div>
+    <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">Sistema de código único por grupo — mantido para compatibilidade. O novo sistema usa nome + PIN individual.</p>
     <div class="settings-row">
       <div>
         <label>🟡 Código — Líder de Equipe</label>
@@ -1016,6 +1093,217 @@ input[readonly]{background:#f8fafc;cursor:default;}
 </div>
 
 </div><!-- /main -->
+
+<!-- ══════════════════════════════════════════ -->
+<!-- APP LÍDER DE EQUIPE -->
+<!-- ══════════════════════════════════════════ -->
+<div id="lider-app" class="role-app">
+  <div class="ra-tabs">
+    <div class="ra-tab active" onclick="raTab('lider','painel')">🏠 Painel</div>
+    <div class="ra-tab" onclick="raTab('lider','os')">📋 OS Abertas</div>
+    <div class="ra-tab" onclick="raTab('lider','relatorio')">📊 Relatório</div>
+    <div class="ra-tab" onclick="raTab('lider','equipe')">👷 Equipe</div>
+    <div class="ra-tab" onclick="raTab('lider','preordem')">📝 Pré-ordem</div>
+  </div>
+  <div class="ra-body">
+
+    <!-- Painel do dia -->
+    <div id="lider-painel" class="ra-section active">
+      <div class="ra-card">
+        <div class="ra-card-title">📅 OS do Dia — <span id="l-regional-nome"></span></div>
+        <div id="l-os-hoje"></div>
+      </div>
+      <div class="ra-card">
+        <div class="ra-card-title">⚠️ OS Pendentes (dias anteriores)</div>
+        <div id="l-os-pendentes"></div>
+      </div>
+      <div class="ra-card">
+        <div class="ra-card-title">👥 Equipe Hoje
+          <span id="l-eq-sum" style="margin-left:auto;font-size:.72rem;font-weight:500;color:var(--mut)"></span>
+        </div>
+        <div id="l-equipe-dia" class="avail-grid"></div>
+      </div>
+    </div>
+
+    <!-- OS da regional -->
+    <div id="lider-os" class="ra-section">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+        <select id="l-os-filtro" onchange="renderLiderOS()" style="font-size:.78rem;padding:6px 10px;border:1.5px solid var(--bdr);border-radius:8px;">
+          <option value="aberta">Abertas</option>
+          <option value="andamento">Em andamento</option>
+          <option value="aguardando_peca">Ag. Peça</option>
+          <option value="">Todas (incl. concluídas)</option>
+        </select>
+        <button class="ra-btn ra-btn-primary" onclick="raTab('lider','preordem')">+ Nova Pré-ordem</button>
+      </div>
+      <div id="l-os-lista"></div>
+    </div>
+
+    <!-- Relatório -->
+    <div id="lider-relatorio" class="ra-section">
+      <div class="ra-card">
+        <div class="ra-card-title">📊 Resumo da Regional — <span id="l-rel-nome"></span></div>
+        <div id="l-rel-periodo" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+          <label style="font-size:.75rem;font-weight:700;color:var(--p)">Período:</label>
+          <select id="l-rel-mes" onchange="renderLiderRelatorio()" style="font-size:.78rem;padding:5px 9px;border:1.5px solid var(--bdr);border-radius:8px;"></select>
+        </div>
+        <!-- KPIs -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+          <div class="an-kpi"><div class="an-kpi-lbl">✅ Concluídas</div><div class="an-kpi-val" id="l-rel-conc" style="color:#16a34a">—</div></div>
+          <div class="an-kpi"><div class="an-kpi-lbl">🔧 Em aberto</div><div class="an-kpi-val" id="l-rel-ab" style="color:#d97706">—</div></div>
+          <div class="an-kpi"><div class="an-kpi-lbl">⚠️ Pendentes</div><div class="an-kpi-val" id="l-rel-pend" style="color:#dc2626">—</div></div>
+        </div>
+        <!-- OS concluídas do período -->
+        <div class="ra-card-title" style="margin-top:4px">📋 OS Concluídas no Período</div>
+        <div id="l-rel-lista"></div>
+      </div>
+    </div>
+
+    <!-- Equipe -->
+    <div id="lider-equipe" class="ra-section">
+      <div class="ra-card">
+        <div class="ra-card-title">👷 Equipe — <span id="l-equipe-reg-nome"></span></div>
+        <div id="l-equipe-lista"></div>
+      </div>
+    </div>
+
+    <!-- Nova pré-ordem -->
+    <div id="lider-preordem" class="ra-section">
+      <div class="ra-card">
+        <div class="ra-card-title">📝 Nova Pré-ordem de Serviço</div>
+        <div class="os-field-row">
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Usina</label>
+            <select id="l-pre-usina" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Prioridade</label>
+            <select id="l-pre-prior" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+        </div>
+        <div class="os-field-row full">
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Título / Serviço</label>
+            <input id="l-pre-titulo" placeholder="Descreva o serviço necessário..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;"/>
+          </div>
+        </div>
+        <div class="os-field-row full">
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Observações</label>
+            <textarea id="l-pre-obs" rows="3" placeholder="Detalhes adicionais..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;resize:vertical;"></textarea>
+          </div>
+        </div>
+        <button class="ra-btn ra-btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="liderEnviarPreOrdem()">📤 Enviar para o Gestor</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- APP TÉCNICO / OPERACIONAL -->
+<!-- ══════════════════════════════════════════ -->
+<div id="tecnico-app" class="role-app">
+  <div class="ra-tabs">
+    <div class="ra-tab active" onclick="raTab('tecnico','meudo')">📅 Meu Dia</div>
+    <div class="ra-tab" onclick="raTab('tecnico','minhasos')">📋 Minhas OS</div>
+    <div class="ra-tab" onclick="raTab('tecnico','preordem')">📝 Pré-ordem</div>
+  </div>
+  <div class="ra-body">
+
+    <!-- Meu dia -->
+    <div id="tecnico-meudo" class="ra-section active">
+      <div class="ra-card">
+        <div class="ra-card-title">📅 Agendamentos de Hoje</div>
+        <div id="t-os-hoje"></div>
+      </div>
+      <div class="ra-card">
+        <div class="ra-card-title">⚠️ Pendentes (dias anteriores)</div>
+        <div id="t-os-pendentes"></div>
+      </div>
+    </div>
+
+    <!-- Minhas OS -->
+    <div id="tecnico-minhasos" class="ra-section">
+      <div id="t-os-lista"></div>
+    </div>
+
+    <!-- Nova pré-ordem -->
+    <div id="tecnico-preordem" class="ra-section">
+      <div class="ra-card">
+        <div class="ra-card-title">📝 Gerar Pré-ordem para o Líder</div>
+        <div class="os-field-row">
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Usina</label>
+            <select id="t-pre-usina" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Prioridade</label>
+            <select id="t-pre-prior" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+        </div>
+        <div class="os-field-row full">
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Descrição do Serviço</label>
+            <input id="t-pre-titulo" placeholder="O que precisa ser feito?" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;"/>
+          </div>
+        </div>
+        <div class="os-field-row full">
+          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Observações</label>
+            <textarea id="t-pre-obs" rows="3" placeholder="Detalhes, materiais necessários..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;resize:vertical;"></textarea>
+          </div>
+        </div>
+        <button class="ra-btn ra-btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="tecnicoEnviarPreOrdem()">📤 Enviar para o Líder</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL FECHAR OS (líder/técnico) -->
+<div class="ov" id="modal-fechar-ra" onclick="fov('modal-fechar-ra',event)">
+  <div class="modal">
+    <h2>✅ Fechar OS — <span id="fra-num"></span></h2>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">📋 Checklist de Conclusão</label>
+      <div id="fra-checklist">
+        <label class="checklist-item"><input type="checkbox" id="chk1"/> Serviço executado conforme solicitado</label>
+        <label class="checklist-item"><input type="checkbox" id="chk2"/> Equipamento testado e funcionando</label>
+        <label class="checklist-item"><input type="checkbox" id="chk3"/> Área de trabalho limpa e organizada</label>
+        <label class="checklist-item"><input type="checkbox" id="chk4"/> EPI utilizado durante o serviço</label>
+        <label class="checklist-item"><input type="checkbox" id="chk5"/> Responsável da usina informado</label>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:5px">📝 Relato do serviço executado</label>
+      <textarea id="fra-relato" rows="3" placeholder="Descreva o que foi feito..." style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;resize:vertical;"></textarea>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:5px">📷 Foto do serviço (opcional)</label>
+      <input type="file" id="fra-foto" accept="image/*" capture="environment" style="font-size:.8rem;width:100%;"/>
+      <div id="fra-foto-preview" style="margin-top:8px;display:none;">
+        <img id="fra-foto-img" style="max-width:100%;border-radius:8px;border:1px solid var(--bdr);"/>
+      </div>
+    </div>
+    <div class="os-field-row">
+      <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Data de conclusão</label>
+        <input type="date" id="fra-data" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;"/>
+      </div>
+      <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Custo real (R$)</label>
+        <input type="number" id="fra-custo" placeholder="0,00" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="ra-btn ra-btn-primary" style="flex:1;justify-content:center;padding:12px;" onclick="confirmarFecharRA()">✅ Confirmar Fechamento</button>
+      <button class="btn btn-sec" onclick="fovId('modal-fechar-ra')">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL OS EDIÇÃO -->
 <div class="ov" id="modal-os" onclick="fov('modal-os',event)">
@@ -1279,7 +1567,10 @@ function doLogout(){
   if(!confirm('Deseja sair do sistema?')) return;
   AUTH.signOut();
   USER_ROLE = null;
+  USER_PERSON = null;
   localStorage.removeItem('cortesia_role');
+  localStorage.removeItem('cortesia_pessoa');
+  esconderRoleApp();
   voltarStep1();
   showLogin();
 }
@@ -1352,27 +1643,31 @@ function aplicarRole(role){
   badge.className    = 'role-badge ' + info.cls;
   badge.style.display = '';
 
+  if(role === 'lider' || role === 'tecnico'){
+    // Mostrar app dedicado; ocultar tabs do gestor
+    // (renderRoleApp será chamado logo após)
+    mostrarRoleApp(role);
+    return;
+  }
+
+  // Gestor: garantir que role apps estejam ocultos
+  esconderRoleApp();
+
   // Tabs: gestor vê tudo; lider esconde análises+config; tecnico esconde equipe+análises+config
   const tabAnalise = document.getElementById('tab-btn-analise');
   const tabConfig  = document.getElementById('tab-btn-config');
   const tabEquipe  = document.getElementById('tab-btn-equipe');
 
-  tabAnalise.style.display = (role === 'gestor') ? '' : 'none';
-  tabConfig.style.display  = (role === 'gestor') ? '' : 'none';
-  tabEquipe.style.display  = (role === 'tecnico') ? 'none' : '';
+  tabAnalise.style.display = '';
+  tabConfig.style.display  = '';
+  tabEquipe.style.display  = '';
 
   // Botão adicionar membro
   const btnMembro = document.getElementById('btn-add-membro');
-  if(btnMembro) btnMembro.style.display = (role === 'gestor') ? '' : 'none';
+  if(btnMembro) btnMembro.style.display = '';
 
-  // Se estava em aba restrita, volta ao dashboard
-  if(role === 'tecnico' && document.getElementById('tab-equipe')?.style.display !== 'none'){
-    goTab('dashboard');
-  }
-  if(role !== 'gestor'){
-    const tabEl = document.getElementById('tab-analise');
-    if(tabEl && tabEl.style.display !== 'none') goTab('dashboard');
-  }
+  // Carregar PIN manager ao abrir config
+  setTimeout(renderPinManager, 100);
 }
 
 function salvarCodigos(){
@@ -1402,6 +1697,7 @@ async function checkAuth(){
   // Verificar sessão de líder/técnico (role salvo localmente)
   const savedRole = localStorage.getItem('cortesia_role');
   if(savedRole && (savedRole === 'lider' || savedRole === 'tecnico')){
+    USER_PERSON = localStorage.getItem('cortesia_pessoa') || null;
     aplicarRole(savedRole);
     return true;
   }
@@ -1639,6 +1935,7 @@ function initConfigTab(){
   document.getElementById('sb-key').value=k?'(salvo)':'';
   if(u&&k){ setSBDot(true); updateSBStatusBox('Supabase configurado. Clique em Sincronizar para atualizar.','ok'); }
   document.getElementById('local-count').textContent=`${osList.length} OS · ${equipe.length} membros de equipe no armazenamento local.`;
+  renderPinManager();
 }
 
 // ═══════════════════════════════════════════════
@@ -2113,12 +2410,9 @@ function renderKanban(){
   if(!document.getElementById('kanban-data').value)
     document.getElementById('kanban-data').value = dt;
 
-  // Col 0: Pendentes — OS de datas anteriores não concluídas e sem reagendamento para hoje
-  const pendentes = osList.filter(o =>
-    !['concluida','cancelada'].includes(o.status) &&
-    o.data < dt &&
-    !osMatchData(o, dt)
-  ).sort((a,b) => a.data < b.data ? -1 : 1); // mais antiga primeiro
+  // Col 0: Pendentes — OS de datas anteriores não concluídas e sem reagendamento futuro
+  const pendentes = osList.filter(o => osEhPendente(o, dt))
+    .sort((a,b) => a.data < b.data ? -1 : 1); // mais antiga primeiro
 
   const colPend = document.getElementById('kb-pendentes');
   document.getElementById('kb-cnt-pend').textContent = pendentes.length;
@@ -3387,12 +3681,512 @@ document.addEventListener('visibilitychange', ()=>{
       startAutoRefresh();
       if(USER_ROLE === 'gestor') conectarRealtime();
     }
+    // Para líder/técnico, mostrar app dedicado após carregar dados
+    if(USER_ROLE === 'lider' || USER_ROLE === 'tecnico'){
+      renderRoleApp();
+    }
   }
 })();
 
 // Helper: verifica se usuário tem permissão de gestor
 function isGestor(){ return USER_ROLE === 'gestor'; }
 function isGestorOrLider(){ return USER_ROLE === 'gestor' || USER_ROLE === 'lider'; }
+
+// ══════════════════════════════════════════════════
+// PIN LOGIN — nome + PIN pessoal
+// ══════════════════════════════════════════════════
+const KEY_PINS = 'cortesia_pins';
+let _pinBuffer = '';
+let _pinPessoa = null;
+
+function getPins(){ try{ return JSON.parse(localStorage.getItem(KEY_PINS)||'{}'); }catch{ return {}; } }
+function savePins(obj){ localStorage.setItem(KEY_PINS, JSON.stringify(obj)); }
+
+function selecionarPerfil(perfil){
+  _perfilSelecionado = perfil;
+  document.getElementById('lg-step1').style.display = 'none';
+  document.getElementById('lg-err').textContent = '';
+  if(perfil === 'gestor'){
+    document.getElementById('lg-step-gestor').style.display = '';
+    document.getElementById('lg-step-pessoa').style.display = 'none';
+    document.getElementById('lg-step-pin').style.display = 'none';
+  } else {
+    document.getElementById('lg-step-gestor').style.display = 'none';
+    document.getElementById('lg-step-pin').style.display = 'none';
+    document.getElementById('lg-step-pessoa').style.display = '';
+    document.getElementById('lg-perfil-label').textContent =
+      perfil === 'lider' ? '🦺 Líder de Equipe' : '🔧 Técnico / Operacional';
+    renderPessoaList(perfil);
+  }
+}
+
+function renderPessoaList(perfil){
+  const list = document.getElementById('lg-pessoa-list');
+  const membros = equipe.filter(p => p.ativo !== false && p.status !== 'inativo');
+  // Líder: somente Líderes de equipe | Técnico: TODOS exceto Líderes de equipe
+  const filtered = perfil === 'lider'
+    ? membros.filter(p => p.func === 'Líder de equipe')
+    : membros.filter(p => p.func !== 'Líder de equipe');
+
+  if(!filtered.length){
+    list.innerHTML = '<p style="font-size:.78rem;color:#94a3b8;text-align:center;padding:12px">Nenhum membro encontrado.<br>Verifique com o gestor.</p>';
+    return;
+  }
+  list.innerHTML = filtered.map(p => `
+    <button class="pessoa-btn" onclick="selecionarPessoa('${esc(p.nome)}')">
+      <div class="avatar" style="background:${p.cor||'#1B2D5F'};width:30px;height:30px;font-size:.7rem;flex-shrink:0">${initials(p.nome)}</div>
+      <div>
+        <div style="font-size:.84rem;font-weight:700">${esc(p.nome)}</div>
+        <div style="font-size:.7rem;color:#64748b">${esc(p.func)} · ${p.reg==='norte'?'🟣 Norte':'🔵 Sul'}</div>
+      </div>
+    </button>`).join('');
+}
+
+function selecionarPessoa(nome){
+  _pinPessoa = nome;
+  _pinBuffer = '';
+  document.getElementById('lg-step-pessoa').style.display = 'none';
+  document.getElementById('lg-step-pin').style.display = '';
+  document.getElementById('lg-pin-nome').textContent = nome.split(' ')[0];
+  atualizarPinDisplay();
+}
+
+function voltarPessoa(){
+  _pinPessoa = null;
+  _pinBuffer = '';
+  document.getElementById('lg-step-pin').style.display = 'none';
+  document.getElementById('lg-step-pessoa').style.display = '';
+}
+
+function voltarStep1(){
+  _perfilSelecionado = null;
+  _pinPessoa = null;
+  _pinBuffer = '';
+  document.getElementById('lg-step1').style.display = '';
+  document.getElementById('lg-step-gestor').style.display = 'none';
+  document.getElementById('lg-step-pessoa').style.display = 'none';
+  document.getElementById('lg-step-pin').style.display = 'none';
+  document.getElementById('lg-err').textContent = '';
+}
+
+function atualizarPinDisplay(){
+  const d = document.getElementById('lg-pin-display');
+  if(!d) return;
+  const filled = '●'; const empty = '○';
+  d.textContent = Array.from({length:4},(_,i)=> i < _pinBuffer.length ? filled : empty).join(' ');
+  if(_pinBuffer.length === 4) setTimeout(pinConfirmar, 200);
+}
+
+function pinKey(k){
+  if(_pinBuffer.length >= 4) return;
+  _pinBuffer += k;
+  atualizarPinDisplay();
+}
+
+function pinClear(){
+  _pinBuffer = _pinBuffer.slice(0,-1);
+  atualizarPinDisplay();
+}
+
+function pinConfirmar(){
+  if(_pinBuffer.length < 4){ document.getElementById('lg-err').textContent = 'Digite os 4 dígitos.'; return; }
+  const pins = getPins();
+  const pinSalvo = pins[_pinPessoa];
+  if(!pinSalvo){
+    // PIN não definido ainda — aceitar qualquer PIN e salvar como primeiro uso
+    pins[_pinPessoa] = _pinBuffer;
+    savePins(pins);
+    concluirLoginPessoa();
+    return;
+  }
+  if(_pinBuffer === pinSalvo){
+    concluirLoginPessoa();
+  } else {
+    _pinBuffer = '';
+    atualizarPinDisplay();
+    document.getElementById('lg-err').textContent = 'PIN incorreto. Tente novamente.';
+  }
+}
+
+function concluirLoginPessoa(){
+  localStorage.setItem('cortesia_role', _perfilSelecionado);
+  localStorage.setItem('cortesia_pessoa', _pinPessoa);
+  USER_PERSON = _pinPessoa;
+  aplicarRole(_perfilSelecionado);
+  hideLogin();
+  toast(`Bem-vindo, ${_pinPessoa.split(' ')[0]}! ✓`);
+  if(SB.ok){ pullFromCloud(false); startAutoRefresh(); }
+  renderRoleApp();
+}
+
+// ══════════════════════════════════════════════════
+// ROLE APP — interfaces para líder e técnico
+// ══════════════════════════════════════════════════
+let USER_PERSON = localStorage.getItem('cortesia_pessoa') || null;
+
+function mostrarRoleApp(role){
+  document.querySelector('.tabs').style.display = 'none';
+  document.querySelector('.main').style.display = 'none';
+  document.getElementById('lider-app').style.display = role === 'lider' ? 'block' : 'none';
+  document.getElementById('tecnico-app').style.display = role === 'tecnico' ? 'block' : 'none';
+}
+
+function esconderRoleApp(){
+  document.querySelector('.tabs').style.display = '';
+  document.querySelector('.main').style.display = '';
+  document.getElementById('lider-app').style.display = 'none';
+  document.getElementById('tecnico-app').style.display = 'none';
+}
+
+function raTab(app, section){
+  const appEl = document.getElementById(app+'-app');
+  appEl.querySelectorAll('.ra-section').forEach(s=>s.classList.remove('active'));
+  appEl.querySelectorAll('.ra-tab').forEach(t=>t.classList.remove('active'));
+  const sec = document.getElementById(app+'-'+section);
+  if(sec) sec.classList.add('active');
+  event?.target?.classList.add('active');
+  // Render ao trocar aba
+  if(app==='lider'){
+    if(section==='painel') renderLiderPainel();
+    if(section==='os') renderLiderOS();
+    if(section==='relatorio') renderLiderRelatorio();
+    if(section==='equipe') renderLiderEquipe();
+    if(section==='preordem') popularUsinasSelect('l-pre-usina');
+  }
+  if(app==='tecnico'){
+    if(section==='meudo') renderTecnicoDia();
+    if(section==='minhasos') renderTecnicoOS();
+    if(section==='preordem') popularUsinasSelect('t-pre-usina');
+  }
+}
+
+function renderRoleApp(){
+  if(USER_ROLE === 'lider'){
+    mostrarRoleApp('lider');
+    renderLiderPainel();
+  } else if(USER_ROLE === 'tecnico'){
+    mostrarRoleApp('tecnico');
+    renderTecnicoDia();
+  }
+}
+
+function getUserRegional(){
+  const p = equipe.find(x=>x.nome === USER_PERSON);
+  return p ? p.reg : null;
+}
+
+function popularUsinasSelect(selId){
+  const sel = document.getElementById(selId); if(!sel) return;
+  const usinas = [...new Set(osList.map(o=>o.usina).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Selecione...</option>' + usinas.map(u=>`<option value="${esc(u)}">${esc(u)}</option>`).join('');
+}
+
+// Verifica se uma OS é genuinamente pendente:
+// - status não concluído/cancelado
+// - data principal no passado
+// - NÃO tem nenhuma data (principal ou em datas[]) >= hoje (ou seja, não foi reagendada)
+function osEhPendente(o, dt){
+  if(['concluida','cancelada'].includes(o.status)) return false;
+  if(!o.data || o.data >= dt) return false; // sem data ou data futura = não é pendente
+  // Se tem alguma data futura ou hoje agendada, não é pendente
+  if(osMatchData(o, dt)) return false; // agendada para hoje
+  const datas = o.datas || [];
+  if(datas.some(d => d >= dt)) return false; // reagendada para o futuro
+  return true;
+}
+
+// ── LÍDER ──
+function renderLiderPainel(){
+  const reg = getUserRegional();
+  const dt  = today();
+  document.getElementById('l-regional-nome').textContent = reg === 'norte' ? '🟣 Norte' : '🔵 Sul';
+
+  // OS do dia na regional (agendadas para hoje, não canceladas)
+  const osHoje = osList.filter(o=>
+    osMatchData(o,dt) && o.reg===reg && o.status!=='cancelada'
+  );
+  const elHoje = document.getElementById('l-os-hoje');
+  elHoje.innerHTML = osHoje.length ? osHoje.map(o=>raOsCard(o,true)).join('') :
+    '<div class="ra-empty">Nenhuma OS agendada para hoje nesta regional.</div>';
+
+  // OS pendentes: abertas/em atraso real (sem data futura reagendada)
+  const pendentes = osList.filter(o=> o.reg===reg && osEhPendente(o, dt))
+    .sort((a,b)=> a.data < b.data ? -1 : 1);
+  const elPend = document.getElementById('l-os-pendentes');
+  elPend.innerHTML = pendentes.length ? pendentes.map(o=>raOsCard(o,true)).join('') :
+    '<div class="ra-empty">✅ Sem pendências em atraso.</div>';
+
+  // Equipe no dia — grade igual ao painel do gestor
+  const membros = equipe.filter(p=>p.reg===reg && isMembroAtivo(p));
+  let busy = 0, idle = 0;
+  const elEq = document.getElementById('l-equipe-dia');
+  elEq.innerHTML = membros.map(p=>{
+    const minhas = osHoje.filter(o=>o.responsavel===p.nome||(o.equipe||[]).includes(p.nome));
+    const isBusy = minhas.length > 0;
+    if(isBusy) busy++; else idle++;
+    const osInfo = isBusy
+      ? `<div class="avail-os">● ${minhas.map(o=>abrevUsina(o.usina)).join(', ')}</div>`
+      : `<div class="avail-idle-lbl">○ Livre</div>`;
+    return `<div class="avail-card ${isBusy?'busy':'idle'}">
+      <div class="avail-name" title="${esc(p.nome)}">${esc(p.nome)}</div>
+      <div class="avail-role">${esc(p.func||'')}</div>
+      ${osInfo}
+    </div>`;
+  }).join('') || '<div class="ra-empty">Nenhum membro ativo nesta regional.</div>';
+  const sumEl = document.getElementById('l-eq-sum');
+  if(sumEl) sumEl.textContent = `${busy} alocado${busy!==1?'s':''} · ${idle} livre${idle!==1?'s':''}`;
+}
+
+function renderLiderOS(){
+  const reg = getUserRegional();
+  const filtro = document.getElementById('l-os-filtro')?.value;
+  // Default: mostrar só abertas (aberta, andamento, aguardando_peca)
+  const statusAbertos = ['aberta','andamento','aguardando_peca'];
+  const lista = osList.filter(o=>{
+    if(o.reg !== reg) return false;
+    if(filtro === '') return o.status !== 'cancelada'; // "todas" exceto canceladas
+    if(filtro) return o.status === filtro;
+    return statusAbertos.includes(o.status); // default: só abertas
+  }).sort((a,b)=>b.data.localeCompare(a.data));
+  const el = document.getElementById('l-os-lista');
+  el.innerHTML = lista.length ? lista.map(o=>raOsCard(o,true)).join('') :
+    '<div class="ra-empty">Nenhuma OS encontrada para este filtro.</div>';
+}
+
+function renderLiderEquipe(){
+  const reg = getUserRegional();
+  const membros = equipe.filter(p=>p.reg===reg);
+  document.getElementById('l-equipe-reg-nome').textContent = reg==='norte'?'🟣 Norte':'🔵 Sul';
+  const el = document.getElementById('l-equipe-lista');
+  el.innerHTML = membros.map(p=>{
+    const osAbertas = osList.filter(o=>['aberta','andamento'].includes(o.status)&&(o.responsavel===p.nome||(o.equipe||[]).includes(p.nome))).length;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+      <div class="avatar" style="background:${p.cor||'#1B2D5F'};width:34px;height:34px;">${initials(p.nome)}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.84rem">${esc(p.nome)}</div>
+        <div style="font-size:.72rem;color:var(--mut)">${esc(p.func)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.8rem;font-weight:700;color:${osAbertas?'#dc2626':'#16a34a'}">${osAbertas} OS abertas</div>
+        <div style="font-size:.68rem;color:var(--mut)">${isMembroAtivo(p)?'✅ Ativo':'⏸ Afastado'}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="ra-empty">Nenhum membro nesta regional.</div>';
+}
+
+function renderLiderRelatorio(){
+  const reg = getUserRegional();
+  const sel = document.getElementById('l-rel-mes');
+  const dt = today();
+  // Popular meses disponíveis (últimos 6)
+  if(sel && sel.options.length === 0){
+    for(let i = 0; i < 6; i++){
+      const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0');
+      const val = `${y}-${m}`;
+      const lbl = `${MESES[d.getMonth()]} ${y}`;
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = lbl;
+      sel.appendChild(opt);
+    }
+  }
+  const mes = sel?.value || dt.slice(0,7);
+  document.getElementById('l-rel-nome').textContent = reg === 'norte' ? '🟣 Norte' : '🔵 Sul';
+
+  const osDoMes = osList.filter(o => o.reg === reg && o.data && o.data.startsWith(mes));
+  const concluidas = osDoMes.filter(o => o.status === 'concluida');
+  const abertas    = osList.filter(o => o.reg === reg && ['aberta','andamento','aguardando_peca'].includes(o.status));
+  const pendentes  = osList.filter(o => o.reg === reg && osEhPendente(o, dt));
+
+  document.getElementById('l-rel-conc').textContent = concluidas.length;
+  document.getElementById('l-rel-ab').textContent   = abertas.length;
+  document.getElementById('l-rel-pend').textContent = pendentes.length;
+
+  const lista = document.getElementById('l-rel-lista');
+  lista.innerHTML = concluidas.length
+    ? concluidas.sort((a,b)=>b.data.localeCompare(a.data)).map(o=>`
+      <div class="ra-os-card" style="border-left:3px solid #16a34a;opacity:.9;">
+        <div class="ra-os-num">${esc(o.num)} ${bS(o.status)}</div>
+        <div class="ra-os-desc">${esc(o.descricao)}</div>
+        <div class="ra-os-meta">${esc(o.usina)} · ${esc(o.responsavel)} · Concluída em ${fmtDate(o.dtReal||o.data)}</div>
+        ${o.custoR ? `<div style="font-size:.72rem;color:#16a34a;margin-top:2px">Custo: ${fmtMoney(o.custoR)}</div>` : ''}
+      </div>`).join('')
+    : '<div class="ra-empty">Nenhuma OS concluída neste período.</div>';
+}
+
+function liderEnviarPreOrdem(){
+  const titulo = document.getElementById('l-pre-titulo').value.trim();
+  const usina  = document.getElementById('l-pre-usina').value;
+  const prior  = document.getElementById('l-pre-prior').value;
+  const obs    = document.getElementById('l-pre-obs').value.trim();
+  if(!titulo||!usina){ toast('Preencha usina e título.','err'); return; }
+  const pre = { id: Date.now(), titulo, usina, prior, obs,
+    solicitante: USER_PERSON, dataAbertura: today(), data: '' };
+  preList.unshift(pre);
+  saveLocal();
+  document.getElementById('l-pre-titulo').value='';
+  document.getElementById('l-pre-obs').value='';
+  toast('Pré-ordem enviada ao gestor! ✓');
+  raTab('lider','painel');
+}
+
+// ── TÉCNICO ──
+function renderTecnicoDia(){
+  const dt = today();
+  const osHoje = osList.filter(o=>
+    osMatchData(o,dt) && o.status!=='cancelada' &&
+    (o.responsavel===USER_PERSON || (o.equipe||[]).includes(USER_PERSON))
+  );
+  const el = document.getElementById('t-os-hoje');
+  el.innerHTML = osHoje.length ? osHoje.map(o=>raOsCard(o,false)).join('') :
+    '<div class="ra-empty">📋 Nenhuma OS agendada para você hoje.</div>';
+
+  // Pendentes: usa mesma lógica corrigida (exclui reagendadas para o futuro)
+  const pendentes = osList.filter(o=>
+    osEhPendente(o, dt) &&
+    (o.responsavel===USER_PERSON || (o.equipe||[]).includes(USER_PERSON))
+  );
+  const elP = document.getElementById('t-os-pendentes');
+  elP.innerHTML = pendentes.length ? pendentes.map(o=>raOsCard(o,false)).join('') :
+    '<div class="ra-empty">✅ Sem pendências em atraso.</div>';
+}
+
+function renderTecnicoOS(){
+  // Mostra apenas OS abertas/em andamento/ag. peça (não concluídas)
+  const lista = osList.filter(o=>
+    ['aberta','andamento','aguardando_peca'].includes(o.status) &&
+    (o.responsavel===USER_PERSON || (o.equipe||[]).includes(USER_PERSON))
+  ).sort((a,b)=>b.data.localeCompare(a.data));
+  const el = document.getElementById('t-os-lista');
+  el.innerHTML = lista.length ? lista.map(o=>raOsCard(o,false)).join('') :
+    '<div class="ra-empty">Nenhuma OS aberta vinculada a você. ✅</div>';
+}
+
+function tecnicoEnviarPreOrdem(){
+  const titulo = document.getElementById('t-pre-titulo').value.trim();
+  const usina  = document.getElementById('t-pre-usina').value;
+  const prior  = document.getElementById('t-pre-prior').value;
+  const obs    = document.getElementById('t-pre-obs').value.trim();
+  if(!titulo||!usina){ toast('Preencha usina e descrição.','err'); return; }
+  const pre = { id: Date.now(), titulo:`[TÉC] ${titulo}`, usina, prior, obs,
+    solicitante: USER_PERSON, dataAbertura: today(), data: '' };
+  preList.unshift(pre);
+  saveLocal();
+  document.getElementById('t-pre-titulo').value='';
+  document.getElementById('t-pre-obs').value='';
+  toast('Pré-ordem enviada ao líder! ✓');
+  raTab('tecnico','meudo');
+}
+
+// Card de OS para os apps de líder/técnico
+function raOsCard(o, mostrarBtns){
+  const urgente = o.prioridade === 'alta' || o.prioridade === 'urgente';
+  const em = o.status === 'andamento';
+  return `<div class="ra-os-card ${urgente?'urgente':''} ${em?'andamento':''}">
+    <div class="ra-os-num">${esc(o.num)} ${bS(o.status)} ${bP(o.prioridade)}</div>
+    <div class="ra-os-desc">${esc(o.descricao)}</div>
+    <div class="ra-os-meta">${esc(o.usina)} · ${esc(o.responsavel)} · ${fmtDate(o.data)}</div>
+    ${mostrarBtns ? `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+      ${o.status==='aberta'?`<button class="ra-btn ra-btn-blue" onclick="raIniciarOS(${o.id})">▶ Iniciar</button>`:''}
+      ${!['concluida','cancelada'].includes(o.status)?`<button class="ra-btn ra-btn-green" onclick="raAbrirFechar(${o.id})">✅ Fechar OS</button>`:''}
+    </div>` : `<div style="margin-top:8px;">
+      ${!['concluida','cancelada'].includes(o.status)?`<button class="ra-btn ra-btn-green" onclick="raAbrirFechar(${o.id})">✅ Fechar OS</button>`:''}
+    </div>`}
+  </div>`;
+}
+
+// Iniciar OS (muda status para andamento)
+async function raIniciarOS(id){
+  const o = osList.find(x=>x.id===id); if(!o) return;
+  o.status = 'andamento';
+  saveLocal();
+  await salvarOSremoto(o);
+  toast('OS iniciada! ✓');
+  renderRoleApp();
+}
+
+// Abrir modal de fechar OS
+let _raFecharId = null;
+function raAbrirFechar(id){
+  const o = osList.find(x=>x.id===id); if(!o) return;
+  _raFecharId = id;
+  document.getElementById('fra-num').textContent = o.num;
+  document.getElementById('fra-data').value = today();
+  document.getElementById('fra-custo').value = '';
+  document.getElementById('fra-relato').value = '';
+  document.getElementById('fra-foto-preview').style.display = 'none';
+  ['chk1','chk2','chk3','chk4','chk5'].forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
+  document.getElementById('modal-fechar-ra').classList.add('open');
+}
+
+// Preview da foto
+document.addEventListener('change', function(e){
+  if(e.target.id === 'fra-foto'){
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = document.getElementById('fra-foto-img');
+      const prev = document.getElementById('fra-foto-preview');
+      img.src = ev.target.result;
+      prev.style.display = '';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+async function confirmarFecharRA(){
+  const o = osList.find(x=>x.id===_raFecharId); if(!o) return;
+  const relato = document.getElementById('fra-relato').value.trim();
+  if(!relato){ toast('Descreva o serviço executado.','err'); return; }
+  const chks = ['chk1','chk2','chk3','chk4','chk5'].map(id=>{
+    const el=document.getElementById(id);
+    return el ? (el.checked?'✅':'⬜') + ' ' + el.closest('label').textContent.trim() : '';
+  }).filter(Boolean);
+  const foto = document.getElementById('fra-foto-img')?.src?.startsWith('data:') ?
+    document.getElementById('fra-foto-img').src : null;
+
+  o.status   = 'concluida';
+  o.dtReal   = document.getElementById('fra-data').value || today();
+  o.custoR   = document.getElementById('fra-custo').value || '';
+  o.obs      = (o.obs ? o.obs+'\n\n' : '') +
+    `--- Fechamento por ${USER_PERSON} em ${fmtDate(o.dtReal)} ---\n${relato}\n\nChecklist:\n${chks.join('\n')}` +
+    (foto ? '\n[Foto anexada]' : '');
+  if(foto) o.foto = foto;
+
+  saveLocal();
+  fovId('modal-fechar-ra');
+  await salvarOSremoto(o);
+  toast('OS finalizada com sucesso! ✓');
+  renderRoleApp();
+}
+
+// ── PIN management (gestor) ──
+function renderPinManager(){
+  const el = document.getElementById('pin-manager-list'); if(!el) return;
+  const pins = getPins();
+  el.innerHTML = equipe.map(p=>`
+    <div class="pin-manage-row">
+      <div class="avatar" style="background:${p.cor||'#1B2D5F'};width:28px;height:28px;font-size:.68rem;flex-shrink:0">${initials(p.nome)}</div>
+      <div style="flex:1;font-size:.83rem;font-weight:600">${esc(p.nome)}</div>
+      <div style="font-size:.7rem;color:var(--mut)">${esc(p.func)}</div>
+      <input type="password" class="pin-input-field" placeholder="${pins[p.nome]?'••••':'Definir PIN'}"
+        data-nome="${esc(p.nome)}" maxlength="4" pattern="[0-9]{4}" style="width:90px;"/>
+      <button class="btn btn-sm btn-p" onclick="salvarPinPessoa('${esc(p.nome)}', this)">Salvar</button>
+    </div>`).join('');
+}
+
+function salvarPinPessoa(nome, btn){
+  const row = btn.closest('.pin-manage-row');
+  const input = row.querySelector('.pin-input-field');
+  const val = input.value.trim();
+  if(!/^\d{4}$/.test(val)){ toast('PIN deve ter exatamente 4 dígitos.','err'); return; }
+  const pins = getPins();
+  pins[nome] = val;
+  savePins(pins);
+  input.value = '';
+  input.placeholder = '••••';
+  toast(`PIN de ${nome.split(' ')[0]} salvo! ✓`);
+}
 </script>
 </body>
 </html>
