@@ -98,6 +98,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   box-shadow:0 4px 14px rgba(255,192,0,.35);
 }
 .login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,192,0,.45);}
+.login-role-btn{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;
+  transition:all .15s;text-align:left;}
+.login-role-btn:hover{border-color:var(--y);background:var(--ylight);transform:translateY(-1px);}
+.login-role-btn div{display:flex;flex-direction:column;gap:2px;}
+.login-role-btn strong{font-size:.88rem;color:var(--p);}
+.login-role-btn small{font-size:.72rem;color:#64748b;}
+.login-back-btn{background:none;border:none;color:var(--mut);font-size:.78rem;cursor:pointer;
+  padding:0;margin-bottom:12px;display:flex;align-items:center;gap:4px;}
+.login-back-btn:hover{color:var(--p);}
+.role-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;
+  font-size:.7rem;font-weight:700;letter-spacing:.03em;}
+.role-gestor{background:#dbeafe;color:#1e40af;}
+.role-lider{background:#fef3c7;color:#92400e;}
+.role-tecnico{background:#dcfce7;color:#166534;}
 .login-btn:disabled{opacity:.6;cursor:default;transform:none;}
 .login-err{color:#dc2626;font-size:.77rem;text-align:center;margin-top:10px;min-height:18px;}
 .btn-logout{background:rgba(255,192,0,.15)!important;color:var(--y)!important;border:1px solid rgba(255,192,0,.4)!important;font-size:.75rem!important;padding:5px 11px!important;}
@@ -369,17 +384,54 @@ input[readonly]{background:#f8fafc;cursor:default;}
       <h2>Gestão de Ordens de Serviço</h2>
       <p>Manutenção de Usinas — Acesso Restrito</p>
     </div>
-    <div class="login-field">
-      <label>E-mail</label>
-      <input type="email" id="lg-email" placeholder="seu@email.com" autocomplete="email"
-             onkeydown="if(event.key==='Enter')doLogin()"/>
+
+    <!-- STEP 1: Seleção de perfil -->
+    <div id="lg-step1">
+      <p style="font-size:.78rem;color:#64748b;margin-bottom:12px;text-align:center">Selecione seu perfil de acesso:</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="login-role-btn" onclick="selecionarPerfil('gestor')">
+          <span style="font-size:1.1rem">👔</span>
+          <div><strong>Gestor</strong><small>Acesso completo ao sistema</small></div>
+        </button>
+        <button class="login-role-btn" onclick="selecionarPerfil('lider')">
+          <span style="font-size:1.1rem">🦺</span>
+          <div><strong>Líder de Equipe</strong><small>Gerencia OS e equipe</small></div>
+        </button>
+        <button class="login-role-btn" onclick="selecionarPerfil('tecnico')">
+          <span style="font-size:1.1rem">🔧</span>
+          <div><strong>Técnico / Operacional</strong><small>Registro e acompanhamento de OS</small></div>
+        </button>
+      </div>
     </div>
-    <div class="login-field">
-      <label>Senha</label>
-      <input type="password" id="lg-pass" placeholder="••••••••" autocomplete="current-password"
-             onkeydown="if(event.key==='Enter')doLogin()"/>
+
+    <!-- STEP 2a: Gestor (email + senha) -->
+    <div id="lg-step-gestor" style="display:none">
+      <button class="login-back-btn" onclick="voltarStep1()">← Voltar</button>
+      <div class="login-field">
+        <label>E-mail</label>
+        <input type="email" id="lg-email" placeholder="seu@email.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="login-field">
+        <label>Senha</label>
+        <input type="password" id="lg-pass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button class="login-btn" id="lg-btn" onclick="doLogin()">Entrar como Gestor</button>
     </div>
-    <button class="login-btn" id="lg-btn" onclick="doLogin()">Entrar</button>
+
+    <!-- STEP 2b: Líder / Técnico (código de acesso) -->
+    <div id="lg-step-codigo" style="display:none">
+      <button class="login-back-btn" onclick="voltarStep1()">← Voltar</button>
+      <p id="lg-perfil-label" style="font-size:.8rem;font-weight:700;color:var(--p);margin-bottom:10px;text-align:center"></p>
+      <div class="login-field">
+        <label>Código de Acesso</label>
+        <input type="password" id="lg-codigo" placeholder="Digite o código do grupo"
+               onkeydown="if(event.key==='Enter')doLoginCodigo()"/>
+      </div>
+      <button class="login-btn" id="lg-btn-cod" onclick="doLoginCodigo()">Entrar</button>
+    </div>
+
     <div class="login-err" id="lg-err"></div>
   </div>
 </div>
@@ -394,6 +446,7 @@ input[readonly]{background:#f8fafc;cursor:default;}
   </div>
   <div class="hdr-right">
     <span class="hdr-date" id="hdr-date"></span>
+    <span id="role-badge" class="role-badge" style="display:none"></span>
     <button class="btn btn-sm btn-logout" id="btn-logout" onclick="doLogout()" style="display:none;" title="Sair do sistema">⎋ Sair</button>
     <div class="sb-dot-wrap" onclick="goTab('config')" title="Configurações Supabase">
       <div class="sb-dot" id="sb-dot"></div>
@@ -408,9 +461,9 @@ input[readonly]{background:#f8fafc;cursor:default;}
   <div class="tab" onclick="goTab('nova')">➕ Nova OS</div>
   <div class="tab" onclick="goTab('historico')">📆 Histórico</div>
   <div class="tab" onclick="goTab('lista')">📂 Todas as OS</div>
-  <div class="tab" onclick="goTab('equipe')">👷 Equipe</div>
-  <div class="tab" onclick="goTab('analise')">📈 Análises</div>
-  <div class="tab" onclick="goTab('config')">⚙️</div>
+  <div class="tab" id="tab-btn-equipe" onclick="goTab('equipe')">👷 Equipe</div>
+  <div class="tab" id="tab-btn-analise" onclick="goTab('analise')">📈 Análises</div>
+  <div class="tab" id="tab-btn-config" onclick="goTab('config')">⚙️</div>
 </div>
 
 <div class="main">
@@ -786,7 +839,7 @@ input[readonly]{background:#f8fafc;cursor:default;}
 <div id="tab-equipe" style="display:none">
   <div class="card">
     <div class="card-title">Gerenciar Equipe
-      <button class="btn btn-p btn-sm" onclick="abrirAddPessoa()">+ Adicionar membro</button>
+      <button class="btn btn-p btn-sm" id="btn-add-membro" onclick="abrirAddPessoa()">+ Adicionar membro</button>
     </div>
     <div class="reg-section">
       <div class="reg-hdr norte"><span style="font-size:1rem">🟣</span><h3>Regional Norte</h3>
@@ -914,6 +967,22 @@ input[readonly]{background:#f8fafc;cursor:default;}
 
 <!-- ═══ CONFIG ═══ -->
 <div id="tab-config" style="display:none">
+  <div class="settings-card">
+    <div class="card-title">🔐 Códigos de Acesso por Perfil</div>
+    <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">Defina os códigos que cada grupo usará para entrar no sistema. Compartilhe o código com os membros de cada perfil.</p>
+    <div class="settings-row">
+      <div>
+        <label>🟡 Código — Líder de Equipe</label>
+        <input id="code-lider" type="password" placeholder="Código do líder"/>
+      </div>
+      <div>
+        <label>🔵 Código — Técnico/Operacional</label>
+        <input id="code-tecnico" type="password" placeholder="Código do técnico"/>
+      </div>
+    </div>
+    <button class="btn btn-p" onclick="salvarCodigos()">Salvar códigos</button>
+    <p style="font-size:.76rem;color:var(--mut);margin-top:8px">O código do Gestor é o e-mail + senha do Supabase. Apenas gestores podem alterar estes códigos.</p>
+  </div>
   <div class="settings-card">
     <div class="card-title">☁ Conexão Supabase</div>
     <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">
@@ -1193,10 +1262,11 @@ async function doLogin(){
   if(!email||!pass){ errEl.textContent='Preencha e-mail e senha.'; return; }
   btn.disabled=true; btn.textContent='Entrando…'; errEl.textContent='';
   const res = await AUTH.signIn(email, pass);
-  btn.disabled=false; btn.textContent='Entrar';
+  btn.disabled=false; btn.textContent='Entrar como Gestor';
   if(res.error){ errEl.textContent=res.error; return; }
+  aplicarRole('gestor');
   hideLogin();
-  toast('Bem-vindo! ✓');
+  toast('Bem-vindo, Gestor! ✓');
   if(SB.ok){
     toast('☁ Carregando dados da nuvem...','info');
     await pullFromCloud(true);
@@ -1208,18 +1278,132 @@ async function doLogin(){
 function doLogout(){
   if(!confirm('Deseja sair do sistema?')) return;
   AUTH.signOut();
+  USER_ROLE = null;
+  localStorage.removeItem('cortesia_role');
+  voltarStep1();
   showLogin();
 }
 
+// ── PERFIS ──
+const KEY_CODE_LIDER   = 'cortesia_code_lider';
+const KEY_CODE_TECNICO = 'cortesia_code_tecnico';
+let USER_ROLE = null;
+let _perfilSelecionado = null;
+
+const ROLE_INFO = {
+  gestor:  { label:'👔 Gestor',           cls:'role-gestor' },
+  lider:   { label:'🦺 Líder de Equipe',  cls:'role-lider'  },
+  tecnico: { label:'🔧 Técnico',          cls:'role-tecnico' }
+};
+
+function selecionarPerfil(perfil){
+  _perfilSelecionado = perfil;
+  document.getElementById('lg-step1').style.display = 'none';
+  document.getElementById('lg-err').textContent = '';
+  if(perfil === 'gestor'){
+    document.getElementById('lg-step-gestor').style.display = '';
+    document.getElementById('lg-step-codigo').style.display = 'none';
+  } else {
+    document.getElementById('lg-step-gestor').style.display = 'none';
+    document.getElementById('lg-step-codigo').style.display = '';
+    document.getElementById('lg-perfil-label').textContent =
+      perfil === 'lider' ? '🦺 Acesso — Líder de Equipe' : '🔧 Acesso — Técnico/Operacional';
+    document.getElementById('lg-codigo').value = '';
+    setTimeout(()=>document.getElementById('lg-codigo').focus(), 100);
+  }
+}
+
+function voltarStep1(){
+  _perfilSelecionado = null;
+  document.getElementById('lg-step1').style.display = '';
+  document.getElementById('lg-step-gestor').style.display = 'none';
+  document.getElementById('lg-step-codigo').style.display = 'none';
+  document.getElementById('lg-err').textContent = '';
+}
+
+function doLoginCodigo(){
+  const codigo = (document.getElementById('lg-codigo').value||'').trim();
+  const errEl  = document.getElementById('lg-err');
+  if(!codigo){ errEl.textContent = 'Digite o código de acesso.'; return; }
+
+  const codLider   = localStorage.getItem(KEY_CODE_LIDER)   || 'lider123';
+  const codTecnico = localStorage.getItem(KEY_CODE_TECNICO)  || 'tec123';
+
+  let role = null;
+  if(_perfilSelecionado === 'lider'   && codigo === codLider)   role = 'lider';
+  if(_perfilSelecionado === 'tecnico' && codigo === codTecnico) role = 'tecnico';
+
+  if(!role){ errEl.textContent = 'Código incorreto. Verifique com seu gestor.'; return; }
+
+  aplicarRole(role);
+  hideLogin();
+  toast(`Bem-vindo! Acesso como ${ROLE_INFO[role].label} ✓`);
+  if(SB.ok){ pullFromCloud(false); startAutoRefresh(); }
+}
+
+function aplicarRole(role){
+  USER_ROLE = role;
+  localStorage.setItem('cortesia_role', role);
+
+  // Badge no header
+  const badge = document.getElementById('role-badge');
+  const info  = ROLE_INFO[role];
+  badge.textContent  = info.label;
+  badge.className    = 'role-badge ' + info.cls;
+  badge.style.display = '';
+
+  // Tabs: gestor vê tudo; lider esconde análises+config; tecnico esconde equipe+análises+config
+  const tabAnalise = document.getElementById('tab-btn-analise');
+  const tabConfig  = document.getElementById('tab-btn-config');
+  const tabEquipe  = document.getElementById('tab-btn-equipe');
+
+  tabAnalise.style.display = (role === 'gestor') ? '' : 'none';
+  tabConfig.style.display  = (role === 'gestor') ? '' : 'none';
+  tabEquipe.style.display  = (role === 'tecnico') ? 'none' : '';
+
+  // Botão adicionar membro
+  const btnMembro = document.getElementById('btn-add-membro');
+  if(btnMembro) btnMembro.style.display = (role === 'gestor') ? '' : 'none';
+
+  // Se estava em aba restrita, volta ao dashboard
+  if(role === 'tecnico' && document.getElementById('tab-equipe')?.style.display !== 'none'){
+    goTab('dashboard');
+  }
+  if(role !== 'gestor'){
+    const tabEl = document.getElementById('tab-analise');
+    if(tabEl && tabEl.style.display !== 'none') goTab('dashboard');
+  }
+}
+
+function salvarCodigos(){
+  const lider   = document.getElementById('code-lider')?.value?.trim();
+  const tecnico = document.getElementById('code-tecnico')?.value?.trim();
+  if(lider)   localStorage.setItem(KEY_CODE_LIDER, lider);
+  if(tecnico) localStorage.setItem(KEY_CODE_TECNICO, tecnico);
+  toast('Códigos de acesso salvos ✓');
+}
+
+function carregarCodigos(){
+  const l = document.getElementById('code-lider');
+  const t = document.getElementById('code-tecnico');
+  if(l) l.placeholder = localStorage.getItem(KEY_CODE_LIDER)   ? '(código definido)' : 'lider123 (padrão)';
+  if(t) t.placeholder = localStorage.getItem(KEY_CODE_TECNICO) ? '(código definido)' : 'tec123 (padrão)';
+}
+
 async function checkAuth(){
-  // Sempre exige login — configuração do Supabase fica na própria tela de login
   const url = localStorage.getItem(KEY_SBU)||'';
   const key = localStorage.getItem(KEY_SBK)||'';
-  if(!url||!key) return false; // sem configuração → mostra login com opção de configurar
-  if(AUTH.token){
+  // Verificar sessão de gestor (Supabase Auth)
+  if(url && key && AUTH.token){
     const valid = await AUTH.verify();
-    if(valid) return true;
+    if(valid){ aplicarRole('gestor'); return true; }
     AUTH.signOut();
+  }
+  // Verificar sessão de líder/técnico (role salvo localmente)
+  const savedRole = localStorage.getItem('cortesia_role');
+  if(savedRole && (savedRole === 'lider' || savedRole === 'tecnico')){
+    aplicarRole(savedRole);
+    return true;
   }
   return false;
 }
@@ -2519,7 +2703,7 @@ function renderLista(){
       <td style="white-space:nowrap">${o.custoR?fmtMoney(o.custoR):'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-edit btn-sm" onclick="abrirEditOS(${o.id})">✏️</button>
-        <button class="btn btn-del btn-sm"  onclick="excluirOS(${o.id})">🗑</button>
+        ${isGestor()?`<button class="btn btn-del btn-sm" onclick="excluirOS(${o.id})">🗑</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -2588,6 +2772,7 @@ async function salvarEdicao(){
   }
 }
 async function excluirOS(id){
+  if(!isGestor()){ toast('Apenas gestores podem excluir OS.','err'); return; }
   const o=osList.find(x=>x.id===id); if(!o) return;
   if(!confirm(`Excluir ${o.num}? Esta ação não pode ser desfeita.`)) return;
   osList=osList.filter(x=>x.id!==id); saveLocal();
@@ -2632,8 +2817,8 @@ function renderEquipe(){
           </div>
         </div>
         <div style="display:flex;gap:4px">
-          <button class="btn btn-edit btn-sm" onclick="abrirEditPessoa(${p.id})">✏️</button>
-          <button class="btn btn-del btn-sm"  onclick="excluirPessoa(${p.id})">🗑</button>
+          ${isGestor()?`<button class="btn btn-edit btn-sm" onclick="abrirEditPessoa(${p.id})">✏️</button>`:''}
+          ${isGestor()?`<button class="btn btn-del btn-sm"  onclick="excluirPessoa(${p.id})">🗑</button>`:''}
         </div>
       </div>`;
     };
@@ -2721,6 +2906,7 @@ function salvarPessoa(){
   });
 }
 function excluirPessoa(id){
+  if(!isGestor()){ toast('Apenas gestores podem remover membros da equipe.','err'); return; }
   const p=equipe.find(x=>x.id===id); if(!p) return;
   const cnt=osList.filter(o=>o.responsavel===p.nome||(o.equipe||[]).includes(p.nome)).length;
   if(!confirm(`${cnt>0?`${p.nome} tem ${cnt} OS vinculadas. `:''}Remover ${p.nome} da equipe?`)) return;
@@ -3189,6 +3375,7 @@ document.addEventListener('visibilitychange', ()=>{
 
 // Verificar autenticação e carregar dados do Supabase automaticamente
 (async()=>{
+  carregarCodigos();
   const authed = await checkAuth();
   if(!authed){
     showLogin();
@@ -3198,10 +3385,14 @@ document.addEventListener('visibilitychange', ()=>{
       toast('☁ Carregando dados da nuvem...', 'info');
       await pullFromCloud(true);
       startAutoRefresh();
-      conectarRealtime();
+      if(USER_ROLE === 'gestor') conectarRealtime();
     }
   }
 })();
+
+// Helper: verifica se usuário tem permissão de gestor
+function isGestor(){ return USER_ROLE === 'gestor'; }
+function isGestorOrLider(){ return USER_ROLE === 'gestor' || USER_ROLE === 'lider'; }
 </script>
 </body>
 </html>
