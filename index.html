@@ -127,61 +127,84 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   transition:all .12s;text-align:left;width:100%;}
 .pessoa-btn:hover{border-color:var(--y);background:var(--ylight);}
 /* Role App Interfaces */
-.role-app{display:none;min-height:100vh;background:var(--bg);}
-/* Barra de topo do role-app */
-.ra-topbar{
-  background:linear-gradient(135deg,#0d1a36,var(--p));
-  color:#fff;padding:10px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:3px solid var(--y);
-  box-shadow:0 2px 8px rgba(0,0,0,.3);
-}
-.ra-topbar-info{display:flex;align-items:center;gap:10px;}
-.ra-topbar-logo{height:34px;width:auto;}
-.ra-topbar-name{font-size:.82rem;font-weight:700;line-height:1.2;}
-.ra-topbar-role{font-size:.68rem;color:var(--y);font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
-.ra-btn-sair{
-  background:rgba(255,80,80,.18);border:1px solid rgba(255,100,100,.4);
-  color:#fca5a5;border-radius:8px;padding:6px 13px;
-  font-size:.75rem;font-weight:700;cursor:pointer;
-  display:flex;align-items:center;gap:5px;transition:all .15s;
-  white-space:nowrap;
-}
-.ra-btn-sair:hover{background:rgba(255,80,80,.32);color:#fff;}
-.ra-header{background:linear-gradient(135deg,#0d1a36,var(--p));color:#fff;padding:14px 18px;
-  border-bottom:3px solid var(--y);}
-.ra-header h2{font-size:.95rem;font-weight:700;}
-.ra-header p{font-size:.72rem;color:rgba(255,255,255,.7);margin-top:2px;}
-.ra-tabs{display:flex;background:var(--p);border-bottom:3px solid var(--y);overflow-x:auto;}
-.ra-tab{padding:10px 16px;font-size:.76rem;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;}
-.ra-tab.active{color:var(--y);border-bottom-color:var(--y);}
-.ra-tab:hover:not(.active){color:#fff;background:rgba(255,255,255,.07);}
-.ra-body{padding:14px;max-width:700px;margin:0 auto;}
+/* ═══ ROLE APP — mobile-first ═══ */
+.role-app{display:none;height:100dvh;height:100vh;flex-direction:column;background:var(--bg);position:fixed;inset:0;z-index:500;overflow:hidden;}
+.ra-topbar{flex-shrink:0;background:linear-gradient(135deg,#0d1a36,var(--p));color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--y);box-shadow:0 2px 8px rgba(0,0,0,.35);}
+.ra-topbar-info{display:flex;align-items:center;gap:9px;}
+.ra-topbar-logo{height:32px;width:auto;flex-shrink:0;}
+.ra-topbar-name{font-size:.88rem;font-weight:700;line-height:1.2;}
+.ra-topbar-role{font-size:.66rem;color:var(--y);font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+.ra-btn-sair{background:rgba(255,80,80,.2);border:1px solid rgba(255,100,100,.45);color:#fca5a5;border-radius:8px;padding:7px 13px;font-size:.76rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+.ra-btn-sair:active{background:rgba(255,80,80,.4);}
+.ra-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 80px;}
+.ra-bottom-nav{flex-shrink:0;background:var(--p);border-top:3px solid var(--y);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);position:relative;z-index:10;}
+.ra-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;font-size:.58rem;font-weight:600;color:rgba(255,255,255,.5);border-top:3px solid transparent;transition:all .15s;gap:3px;-webkit-tap-highlight-color:transparent;}
+.ra-nav-btn span.ico{font-size:1.15rem;line-height:1;}
+.ra-nav-btn.active{color:var(--y);border-top-color:var(--y);}
+.ra-nav-btn:active{background:rgba(255,255,255,.08);}
 .ra-section{display:none;} .ra-section.active{display:block;}
-.ra-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
-.ra-card-title{font-size:.82rem;font-weight:700;color:var(--p);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ra-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:10px;}
+.ra-card-title{font-size:.83rem;font-weight:700;color:var(--p);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ra-empty{text-align:center;padding:28px 10px;color:var(--mut);font-size:.82rem;}
+.ra-os-card{background:#fff;border:1.5px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:10px;}
+.ra-os-card.urgente{border-color:#fca5a5;background:#fff8f8;}
+.ra-os-card.andamento{border-color:#86efac;background:#f0fdf4;}
+.ra-os-num{font-size:.74rem;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.ra-os-desc{font-size:.92rem;font-weight:600;color:var(--txt);margin-bottom:4px;line-height:1.3;}
+.ra-os-meta{font-size:.74rem;color:var(--mut);margin-bottom:10px;line-height:1.6;}
+.ra-os-log{background:#f8fafc;border-radius:8px;padding:8px 10px;margin-bottom:10px;border:1px solid #e2e8f0;}
+.ra-os-log-row{padding:5px 0;border-bottom:1px dashed #e2e8f0;font-size:.74rem;color:var(--txt);}
+.ra-os-log-row:last-child{border-bottom:none;}
+.ra-os-log-pendente{color:#d97706;font-size:.7rem;font-weight:700;}
+.ra-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
+.ra-btn-action{flex:1;min-width:80px;padding:11px 6px;border:none;border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.ra-btn-start{background:#1d4ed8;color:#fff;}
+.ra-btn-start:active{background:#1e40af;}
+.ra-btn-update{background:#f59e0b;color:#fff;}
+.ra-btn-update:active{background:#d97706;}
+.ra-btn-close2{background:#16a34a;color:#fff;}
+.ra-btn-close2:active{background:#15803d;}
+.ra-btn-validate{background:#7c3aed;color:#fff;}
+.ra-equipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ra-equipe-card{border-radius:10px;padding:10px 12px;border:1.5px solid var(--bdr);font-size:.78rem;}
+.ra-equipe-card.alocado{border-color:#86efac;background:#f0fdf4;}
+.ra-equipe-card.livre{border-color:#fca5a5;background:#fff5f5;}
+.ra-equipe-nome{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ra-equipe-func{font-size:.68rem;color:var(--mut);}
+.ra-equipe-status{font-size:.7rem;margin-top:4px;}
+.ra-field{margin-bottom:12px;}
+.ra-field label{font-size:.77rem;font-weight:700;color:var(--p);display:block;margin-bottom:5px;}
+.ra-field input,.ra-field select,.ra-field textarea{width:100%;padding:12px;border:1.5px solid var(--bdr);border-radius:9px;font-size:.9rem;color:var(--txt);outline:none;-webkit-appearance:none;appearance:none;background:#fff;}
+.ra-field input:focus,.ra-field select:focus,.ra-field textarea:focus{border-color:var(--y);}
+.ra-btn-full{width:100%;padding:14px;border:none;border-radius:9px;font-size:.9rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--y),var(--yh));color:var(--p);box-shadow:0 4px 12px rgba(255,192,0,.3);-webkit-tap-highlight-color:transparent;}
+.ra-btn-full:active{transform:scale(.98);}
+.ra-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.ra-kpi{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center;}
+.ra-kpi-val{font-size:1.6rem;font-weight:800;line-height:1;}
+.ra-kpi-lbl{font-size:.65rem;color:var(--mut);margin-top:3px;}
+.checklist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:.84rem;}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item input[type=checkbox]{width:20px;height:20px;cursor:pointer;accent-color:var(--p);flex-shrink:0;}
 .os-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
 .os-field-row.full{grid-template-columns:1fr;}
-.checklist-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.83rem;}
-.checklist-item:last-child{border-bottom:none;}
-.checklist-item input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--p);}
-.ra-os-card{background:#fff;border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;margin-bottom:10px;
-  border-left:4px solid var(--p);}
-.ra-os-card.urgente{border-left-color:#dc2626;}
-.ra-os-card.andamento{border-left-color:#3b82f6;}
-.ra-os-num{font-size:.72rem;font-weight:700;color:var(--p);}
-.ra-os-desc{font-size:.85rem;font-weight:600;color:var(--txt);margin:3px 0;}
-.ra-os-meta{font-size:.72rem;color:var(--mut);}
-.ra-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;
-  font-size:.8rem;font-weight:700;border:none;cursor:pointer;transition:all .12s;}
+/* Session restore */
+#session-restore{position:fixed;inset:0;z-index:9998;background:linear-gradient(160deg,#07112A,#1B2D5F);display:none;align-items:center;justify-content:center;padding:24px;}
+#session-restore.open{display:flex;}
+.session-box{background:#fff;border-radius:18px;padding:32px 24px;width:100%;max-width:360px;text-align:center;}
+.session-box h2{font-size:1.05rem;font-weight:800;color:var(--p);margin:12px 0 6px;}
+.session-box p{font-size:.82rem;color:var(--mut);margin-bottom:20px;}
+.session-avatar{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:#fff;margin:0 auto 6px;}
+.session-btn-cont{width:100%;padding:13px;border:none;border-radius:9px;font-size:.9rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--y),var(--yh));color:var(--p);margin-bottom:10px;box-shadow:0 4px 12px rgba(255,192,0,.3);}
+.session-btn-troc{width:100%;padding:11px;border:1.5px solid var(--bdr);border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;background:#fff;color:var(--mut);}
+.pin-manage-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.83rem;}
+.pin-manage-row:last-child{border-bottom:none;}
+.pin-manage-row input{width:90px;padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.82rem;text-align:center;}
+.login-btn:disabled{opacity:.6;cursor:default;transform:none;}
+.login-err{color:#dc2626;font-size:.77rem;text-align:center;margin-top:10px;min-height:18px;}
+.ra-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;font-size:.8rem;font-weight:700;border:none;cursor:pointer;transition:all .12s;}
 .ra-btn-primary{background:var(--y);color:var(--p);}
 .ra-btn-green{background:#dcfce7;color:#166534;}
-.ra-btn-red{background:#fee2e2;color:#991b1b;}
 .ra-btn-blue{background:#dbeafe;color:#1e40af;}
-.ra-empty{text-align:center;padding:30px 10px;color:var(--mut);font-size:.82rem;}
-.ra-equipe-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;
-  font-size:.72rem;font-weight:600;margin:3px;background:#f0f4ff;color:var(--p);border:1px solid #c7d2fe;}
-.ra-equipe-chip.livre{background:#fff5f5;color:#991b1b;border-color:#fecaca;}
 .pin-manage-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.83rem;}
 .pin-manage-row:last-child{border-bottom:none;}
 .pin-manage-row input{width:90px;padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.82rem;text-align:center;}
@@ -523,6 +546,19 @@ input[readonly]{background:#f8fafc;cursor:default;}
     </div>
 
     <div class="login-err" id="lg-err"></div>
+  </div>
+</div>
+
+<!-- SESSION RESTORE — mostrado quando sessão anterior é detectada -->
+<div id="session-restore">
+  <div class="session-box">
+    <img src="https://raw.githubusercontent.com/ThiagoLC1/cortesia_manuten-o_usinas/main/5SHoCc3xIimF.png" alt="CC" style="height:50px;margin-bottom:8px;"/>
+    <div class="session-avatar" id="sr-avatar" style="background:#1B2D5F">--</div>
+    <div id="sr-role-label" class="session-box" style="padding:0;font-size:.7rem;font-weight:700;color:var(--y);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px"></div>
+    <h2 id="sr-nome">Bem-vindo de volta!</h2>
+    <p id="sr-desc">Deseja continuar com esta sessão?</p>
+    <button class="session-btn-cont" onclick="sessionRestoreContinuar()">✓ Continuar</button>
+    <button class="session-btn-troc" onclick="sessionRestoreTrocar()">↺ Trocar usuário</button>
   </div>
 </div>
 
@@ -1113,11 +1149,10 @@ input[readonly]{background:#f8fafc;cursor:default;}
 
 </div><!-- /main -->
 
-<!-- ══════════════════════════════════════════ -->
-<!-- APP LÍDER DE EQUIPE -->
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════ -->
+<!-- APP LÍDER DE EQUIPE (mobile-first)               -->
+<!-- ══════════════════════════════════════════════════ -->
 <div id="lider-app" class="role-app">
-  <!-- Barra de topo -->
   <div class="ra-topbar">
     <div class="ra-topbar-info">
       <img class="ra-topbar-logo" src="https://raw.githubusercontent.com/ThiagoLC1/cortesia_manuten-o_usinas/main/5SHoCc3xIimF.png" alt="CC"/>
@@ -1128,68 +1163,47 @@ input[readonly]{background:#f8fafc;cursor:default;}
     </div>
     <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
   </div>
-  <div class="ra-tabs">
-    <div class="ra-tab active" onclick="raTab('lider','painel')">🏠 Painel</div>
-    <div class="ra-tab" onclick="raTab('lider','os')">📋 OS Abertas</div>
-    <div class="ra-tab" onclick="raTab('lider','relatorio')">📊 Relatório</div>
-    <div class="ra-tab" onclick="raTab('lider','equipe')">👷 Equipe</div>
-    <div class="ra-tab" onclick="raTab('lider','preordem')">📝 Pré-ordem</div>
-  </div>
-  <div class="ra-body">
 
-    <!-- Painel do dia -->
+  <div class="ra-content">
+    <!-- PAINEL -->
     <div id="lider-painel" class="ra-section active">
+      <div class="ra-kpi-row" id="l-kpi-row"></div>
       <div class="ra-card">
-        <div class="ra-card-title">📅 OS do Dia — <span id="l-regional-nome"></span></div>
+        <div class="ra-card-title">📅 OS de Hoje — <span id="l-regional-nome"></span></div>
         <div id="l-os-hoje"></div>
       </div>
       <div class="ra-card">
-        <div class="ra-card-title">⚠️ OS Pendentes (dias anteriores)</div>
+        <div class="ra-card-title">⚠️ Pendentes em Atraso</div>
         <div id="l-os-pendentes"></div>
       </div>
       <div class="ra-card">
-        <div class="ra-card-title">👥 Equipe Hoje
-          <span id="l-eq-sum" style="margin-left:auto;font-size:.72rem;font-weight:500;color:var(--mut)"></span>
-        </div>
-        <div id="l-equipe-dia" class="avail-grid"></div>
+        <div class="ra-card-title">👥 Equipe Hoje <span id="l-eq-sum" style="margin-left:auto;font-size:.7rem;color:var(--mut);font-weight:500"></span></div>
+        <div id="l-equipe-dia" class="ra-equipe-grid"></div>
       </div>
     </div>
 
-    <!-- OS da regional -->
+    <!-- OS ABERTAS -->
     <div id="lider-os" class="ra-section">
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
-        <select id="l-os-filtro" onchange="renderLiderOS()" style="font-size:.78rem;padding:6px 10px;border:1.5px solid var(--bdr);border-radius:8px;">
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
+        <select id="l-os-filtro" onchange="renderLiderOS()" style="flex:1;padding:11px 10px;border:1.5px solid var(--bdr);border-radius:9px;font-size:.85rem;background:#fff;">
           <option value="aberta">Abertas</option>
           <option value="andamento">Em andamento</option>
           <option value="aguardando_peca">Ag. Peça</option>
-          <option value="">Todas (incl. concluídas)</option>
+          <option value="">Todas</option>
         </select>
-        <button class="ra-btn ra-btn-primary" onclick="raTab('lider','preordem')">+ Nova Pré-ordem</button>
       </div>
       <div id="l-os-lista"></div>
     </div>
 
-    <!-- Relatório -->
-    <div id="lider-relatorio" class="ra-section">
+    <!-- VALIDAR ATUALIZAÇÕES -->
+    <div id="lider-validar" class="ra-section">
       <div class="ra-card">
-        <div class="ra-card-title">📊 Resumo da Regional — <span id="l-rel-nome"></span></div>
-        <div id="l-rel-periodo" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
-          <label style="font-size:.75rem;font-weight:700;color:var(--p)">Período:</label>
-          <select id="l-rel-mes" onchange="renderLiderRelatorio()" style="font-size:.78rem;padding:5px 9px;border:1.5px solid var(--bdr);border-radius:8px;"></select>
-        </div>
-        <!-- KPIs -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-          <div class="an-kpi"><div class="an-kpi-lbl">✅ Concluídas</div><div class="an-kpi-val" id="l-rel-conc" style="color:#16a34a">—</div></div>
-          <div class="an-kpi"><div class="an-kpi-lbl">🔧 Em aberto</div><div class="an-kpi-val" id="l-rel-ab" style="color:#d97706">—</div></div>
-          <div class="an-kpi"><div class="an-kpi-lbl">⚠️ Pendentes</div><div class="an-kpi-val" id="l-rel-pend" style="color:#dc2626">—</div></div>
-        </div>
-        <!-- OS concluídas do período -->
-        <div class="ra-card-title" style="margin-top:4px">📋 OS Concluídas no Período</div>
-        <div id="l-rel-lista"></div>
+        <div class="ra-card-title">✅ Atualizações para Validar</div>
+        <div id="l-validar-lista"><div class="ra-empty">Nenhuma atualização pendente de validação.</div></div>
       </div>
     </div>
 
-    <!-- Equipe -->
+    <!-- EQUIPE -->
     <div id="lider-equipe" class="ra-section">
       <div class="ra-card">
         <div class="ra-card-title">👷 Equipe — <span id="l-equipe-reg-nome"></span></div>
@@ -1197,46 +1211,59 @@ input[readonly]{background:#f8fafc;cursor:default;}
       </div>
     </div>
 
-    <!-- Nova pré-ordem -->
-    <div id="lider-preordem" class="ra-section">
+    <!-- RELATÓRIO -->
+    <div id="lider-relatorio" class="ra-section">
       <div class="ra-card">
-        <div class="ra-card-title">📝 Nova Pré-ordem de Serviço</div>
-        <div class="os-field-row">
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Usina</label>
-            <select id="l-pre-usina" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
-              <option value="">Selecione...</option>
-            </select>
-          </div>
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Prioridade</label>
-            <select id="l-pre-prior" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
-              <option value="normal">Normal</option>
-              <option value="alta">Alta</option>
-              <option value="urgente">Urgente</option>
-            </select>
-          </div>
+        <div class="ra-card-title">📊 Relatório — <span id="l-rel-nome"></span></div>
+        <div style="margin-bottom:12px;">
+          <select id="l-rel-mes" onchange="renderLiderRelatorio()" style="width:100%;padding:11px;border:1.5px solid var(--bdr);border-radius:9px;font-size:.85rem;background:#fff;"></select>
         </div>
-        <div class="os-field-row full">
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Título / Serviço</label>
-            <input id="l-pre-titulo" placeholder="Descreva o serviço necessário..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;"/>
-          </div>
+        <div class="ra-kpi-row">
+          <div class="ra-kpi"><div class="ra-kpi-val" id="l-rel-conc" style="color:#16a34a">—</div><div class="ra-kpi-lbl">Concluídas</div></div>
+          <div class="ra-kpi"><div class="ra-kpi-val" id="l-rel-ab" style="color:#d97706">—</div><div class="ra-kpi-lbl">Em aberto</div></div>
+          <div class="ra-kpi"><div class="ra-kpi-val" id="l-rel-pend" style="color:#dc2626">—</div><div class="ra-kpi-lbl">Pendentes</div></div>
         </div>
-        <div class="os-field-row full">
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Observações</label>
-            <textarea id="l-pre-obs" rows="3" placeholder="Detalhes adicionais..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;resize:vertical;"></textarea>
-          </div>
-        </div>
-        <button class="ra-btn ra-btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="liderEnviarPreOrdem()">📤 Enviar para o Gestor</button>
+        <div class="ra-card-title">OS Concluídas no Período</div>
+        <div id="l-rel-lista"></div>
       </div>
     </div>
 
+    <!-- PRÉ-ORDEM -->
+    <div id="lider-preordem" class="ra-section">
+      <div class="ra-card">
+        <div class="ra-card-title">📝 Nova Pré-ordem</div>
+        <div class="ra-field"><label>Usina</label>
+          <select id="l-pre-usina"><option value="">Selecione...</option></select>
+        </div>
+        <div class="ra-field"><label>Prioridade</label>
+          <select id="l-pre-prior"><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select>
+        </div>
+        <div class="ra-field"><label>Serviço / Título</label>
+          <input id="l-pre-titulo" placeholder="Descreva o serviço..."/>
+        </div>
+        <div class="ra-field"><label>Observações</label>
+          <textarea id="l-pre-obs" rows="3" placeholder="Detalhes adicionais..."></textarea>
+        </div>
+        <button class="ra-btn-full" onclick="liderEnviarPreOrdem()">📤 Enviar ao Gestor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="ra-bottom-nav">
+    <div class="ra-nav-btn active" id="lnav-painel" onclick="raTab('lider','painel')"><span class="ico">🏠</span>Painel</div>
+    <div class="ra-nav-btn" id="lnav-os" onclick="raTab('lider','os')"><span class="ico">📋</span>OS</div>
+    <div class="ra-nav-btn" id="lnav-validar" onclick="raTab('lider','validar')"><span class="ico">✅</span>Validar</div>
+    <div class="ra-nav-btn" id="lnav-equipe" onclick="raTab('lider','equipe')"><span class="ico">👷</span>Equipe</div>
+    <div class="ra-nav-btn" id="lnav-relatorio" onclick="raTab('lider','relatorio')"><span class="ico">📊</span>Relatório</div>
+    <div class="ra-nav-btn" id="lnav-preordem" onclick="raTab('lider','preordem')"><span class="ico">📝</span>Pré-OS</div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════ -->
-<!-- APP TÉCNICO / OPERACIONAL -->
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════ -->
+<!-- APP TÉCNICO / OPERACIONAL (mobile-first)          -->
+<!-- ══════════════════════════════════════════════════ -->
 <div id="tecnico-app" class="role-app">
-  <!-- Barra de topo -->
   <div class="ra-topbar">
     <div class="ra-topbar-info">
       <img class="ra-topbar-logo" src="https://raw.githubusercontent.com/ThiagoLC1/cortesia_manuten-o_usinas/main/5SHoCc3xIimF.png" alt="CC"/>
@@ -1247,77 +1274,116 @@ input[readonly]{background:#f8fafc;cursor:default;}
     </div>
     <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
   </div>
-  <div class="ra-tabs">
-    <div class="ra-tab active" onclick="raTab('tecnico','meudo')">📅 Meu Dia</div>
-    <div class="ra-tab" onclick="raTab('tecnico','minhasos')">📋 Minhas OS</div>
-    <div class="ra-tab" onclick="raTab('tecnico','preordem')">📝 Pré-ordem</div>
-  </div>
-  <div class="ra-body">
 
-    <!-- Meu dia -->
+  <div class="ra-content">
+    <!-- MEU DIA -->
     <div id="tecnico-meudo" class="ra-section active">
       <div class="ra-card">
-        <div class="ra-card-title">📅 Agendamentos de Hoje</div>
+        <div class="ra-card-title">📅 Minhas OS de Hoje</div>
         <div id="t-os-hoje"></div>
       </div>
       <div class="ra-card">
-        <div class="ra-card-title">⚠️ Pendentes (dias anteriores)</div>
+        <div class="ra-card-title">⚠️ Pendentes em Atraso</div>
         <div id="t-os-pendentes"></div>
       </div>
     </div>
 
-    <!-- Minhas OS -->
+    <!-- MINHAS OS -->
     <div id="tecnico-minhasos" class="ra-section">
       <div id="t-os-lista"></div>
     </div>
 
-    <!-- Nova pré-ordem -->
+    <!-- PRÉ-ORDEM -->
     <div id="tecnico-preordem" class="ra-section">
       <div class="ra-card">
-        <div class="ra-card-title">📝 Gerar Pré-ordem para o Líder</div>
-        <div class="os-field-row">
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Usina</label>
-            <select id="t-pre-usina" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
-              <option value="">Selecione...</option>
-            </select>
-          </div>
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Prioridade</label>
-            <select id="t-pre-prior" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;">
-              <option value="normal">Normal</option>
-              <option value="alta">Alta</option>
-              <option value="urgente">Urgente</option>
-            </select>
-          </div>
+        <div class="ra-card-title">📝 Solicitar Serviço ao Líder</div>
+        <div class="ra-field"><label>Usina</label>
+          <select id="t-pre-usina"><option value="">Selecione...</option></select>
         </div>
-        <div class="os-field-row full">
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Descrição do Serviço</label>
-            <input id="t-pre-titulo" placeholder="O que precisa ser feito?" style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;"/>
-          </div>
+        <div class="ra-field"><label>Prioridade</label>
+          <select id="t-pre-prior"><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select>
         </div>
-        <div class="os-field-row full">
-          <div><label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:4px">Observações</label>
-            <textarea id="t-pre-obs" rows="3" placeholder="Detalhes, materiais necessários..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.83rem;resize:vertical;"></textarea>
-          </div>
+        <div class="ra-field"><label>Descrição do Serviço</label>
+          <input id="t-pre-titulo" placeholder="O que precisa ser feito?"/>
         </div>
-        <button class="ra-btn ra-btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="tecnicoEnviarPreOrdem()">📤 Enviar para o Líder</button>
+        <div class="ra-field"><label>Observações / Materiais</label>
+          <textarea id="t-pre-obs" rows="3" placeholder="Detalhes, materiais necessários..."></textarea>
+        </div>
+        <button class="ra-btn-full" onclick="tecnicoEnviarPreOrdem()">📤 Enviar ao Líder</button>
       </div>
     </div>
+  </div>
 
+  <!-- Bottom Nav -->
+  <div class="ra-bottom-nav">
+    <div class="ra-nav-btn active" id="tnav-meudo" onclick="raTab('tecnico','meudo')"><span class="ico">📅</span>Meu Dia</div>
+    <div class="ra-nav-btn" id="tnav-minhasos" onclick="raTab('tecnico','minhasos')"><span class="ico">📋</span>Minhas OS</div>
+    <div class="ra-nav-btn" id="tnav-preordem" onclick="raTab('tecnico','preordem')"><span class="ico">📝</span>Pré-OS</div>
   </div>
 </div>
 
-<!-- MODAL FECHAR OS (líder/técnico) -->
+<!-- MODAL: CHECK-IN da OS (EPI + início) -->
+<div class="ov" id="modal-checkin" onclick="fov('modal-checkin',event)">
+  <div class="modal">
+    <h2>▶ Iniciar OS — <span id="ci-num"></span></h2>
+    <p style="font-size:.8rem;color:var(--mut);margin-bottom:12px"><span id="ci-desc"></span></p>
+    <label style="font-size:.76rem;font-weight:700;color:var(--p);display:block;margin-bottom:8px">🦺 Confirmação de EPI — itens em uso:</label>
+    <div>
+      <label class="checklist-item"><input type="checkbox" id="epi1"/> Capacete de segurança</label>
+      <label class="checklist-item"><input type="checkbox" id="epi2"/> Colete refletivo</label>
+      <label class="checklist-item"><input type="checkbox" id="epi3"/> Luvas de proteção</label>
+      <label class="checklist-item"><input type="checkbox" id="epi4"/> Óculos de proteção</label>
+      <label class="checklist-item"><input type="checkbox" id="epi5"/> Bota de segurança</label>
+    </div>
+    <div style="margin-top:14px">
+      <label style="font-size:.76rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">Observação inicial (opcional)</label>
+      <textarea id="ci-obs" rows="2" placeholder="Condições do local, materiais levados..." style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.84rem;resize:vertical;"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-sec" style="flex:1" onclick="fovId('modal-checkin')">Cancelar</button>
+      <button class="btn btn-p" style="flex:2" onclick="confirmarCheckin()">✅ Confirmar início</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PROGRESSO DIÁRIO -->
+<div class="ov" id="modal-progresso" onclick="fov('modal-progresso',event)">
+  <div class="modal">
+    <h2>📝 Registrar Progresso — <span id="pg-num"></span></h2>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.76rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">O que foi feito hoje? <span style="color:#dc2626">*</span></label>
+      <textarea id="pg-descricao" rows="4" placeholder="Descreva as atividades executadas nesta jornada..." style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.84rem;resize:vertical;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:.76rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">Data</label>
+        <input type="date" id="pg-data" style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.84rem;"/>
+      </div>
+      <div>
+        <label style="font-size:.76rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">Horas trabalhadas</label>
+        <input type="number" id="pg-horas" placeholder="Ex: 6" min="1" max="24" style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.84rem;"/>
+      </div>
+    </div>
+    <label style="font-size:.76rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">Necessidade para próximo dia (se não concluiu)</label>
+    <textarea id="pg-necessidade" rows="2" placeholder="O que falta, materiais necessários, próximos passos..." style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:8px;font-size:.84rem;resize:vertical;margin-bottom:14px;"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sec" style="flex:1" onclick="fovId('modal-progresso')">Cancelar</button>
+      <button class="btn btn-p" style="flex:2" onclick="confirmarProgresso()">💾 Salvar progresso</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: FECHAR OS (conclusão final) -->
 <div class="ov" id="modal-fechar-ra" onclick="fov('modal-fechar-ra',event)">
   <div class="modal">
-    <h2>✅ Fechar OS — <span id="fra-num"></span></h2>
+    <h2>✅ Concluir OS — <span id="fra-num"></span></h2>
     <div style="margin-bottom:12px;">
       <label style="font-size:.75rem;font-weight:700;color:var(--p);display:block;margin-bottom:6px">📋 Checklist de Conclusão</label>
       <div id="fra-checklist">
         <label class="checklist-item"><input type="checkbox" id="chk1"/> Serviço executado conforme solicitado</label>
         <label class="checklist-item"><input type="checkbox" id="chk2"/> Equipamento testado e funcionando</label>
         <label class="checklist-item"><input type="checkbox" id="chk3"/> Área de trabalho limpa e organizada</label>
-        <label class="checklist-item"><input type="checkbox" id="chk4"/> EPI utilizado durante o serviço</label>
-        <label class="checklist-item"><input type="checkbox" id="chk5"/> Responsável da usina informado</label>
+        <label class="checklist-item"><input type="checkbox" id="chk4"/> Responsável da usina informado</label>
       </div>
     </div>
     <div style="margin-bottom:12px;">
@@ -1732,15 +1798,14 @@ async function checkAuth(){
   // Verificar sessão de gestor (Supabase Auth)
   if(url && key && AUTH.token){
     const valid = await AUTH.verify();
-    if(valid){ aplicarRole('gestor'); return true; }
+    if(valid){ aplicarRole('gestor'); return 'gestor'; }
     AUTH.signOut();
   }
-  // Verificar sessão de líder/técnico (role salvo localmente)
+  // Verificar sessão de líder/técnico salva
   const savedRole = localStorage.getItem('cortesia_role');
-  if(savedRole && (savedRole === 'lider' || savedRole === 'tecnico')){
-    USER_PERSON = localStorage.getItem('cortesia_pessoa') || null;
-    aplicarRole(savedRole);
-    return true;
+  const savedPessoa = localStorage.getItem('cortesia_pessoa');
+  if(savedRole && (savedRole === 'lider' || savedRole === 'tecnico') && savedPessoa){
+    return 'restore'; // vai mostrar tela de confirmação
   }
   return false;
 }
@@ -3708,26 +3773,52 @@ document.addEventListener('visibilitychange', ()=>{
   if(!document.hidden && AUTH.logged) pullFromCloud(false);
 });
 
-// Verificar autenticação e carregar dados do Supabase automaticamente
+// Verificar autenticação e carregar dados automaticamente
 (async()=>{
   carregarCodigos();
   const authed = await checkAuth();
   if(!authed){
     showLogin();
-  } else {
+  } else if(authed === 'gestor'){
     hideLogin();
     if(SB.ok){
-      toast('☁ Carregando dados da nuvem...', 'info');
+      toast('☁ Carregando dados...','info');
       await pullFromCloud(true);
       startAutoRefresh();
-      if(USER_ROLE === 'gestor') conectarRealtime();
+      conectarRealtime();
     }
-    // Para líder/técnico, mostrar app dedicado após carregar dados
-    if(USER_ROLE === 'lider' || USER_ROLE === 'tecnico'){
-      renderRoleApp();
-    }
+  } else if(authed === 'restore'){
+    // Mostrar tela de confirmação de sessão anterior
+    const savedRole  = localStorage.getItem('cortesia_role');
+    const savedPessoa = localStorage.getItem('cortesia_pessoa');
+    const p = equipe.find(x=>x.nome===savedPessoa);
+    const av = document.getElementById('sr-avatar');
+    av.textContent = initials(savedPessoa||'?');
+    av.style.background = p?.cor || '#1B2D5F';
+    document.getElementById('sr-nome').textContent = (savedPessoa||'').split(' ')[0];
+    document.getElementById('sr-role-label').textContent = savedRole==='lider'?'🦺 Líder de Equipe':'🔧 Técnico / Operacional';
+    document.getElementById('sr-desc').textContent = `Continuar como ${savedPessoa}?`;
+    document.getElementById('session-restore').classList.add('open');
   }
 })();
+
+function sessionRestoreContinuar(){
+  document.getElementById('session-restore').classList.remove('open');
+  USER_PERSON = localStorage.getItem('cortesia_pessoa');
+  const role = localStorage.getItem('cortesia_role');
+  aplicarRole(role);
+  if(SB.ok){ pullFromCloud(false); startAutoRefresh(); }
+  renderRoleApp();
+}
+
+function sessionRestoreTrocar(){
+  document.getElementById('session-restore').classList.remove('open');
+  USER_ROLE = null; USER_PERSON = null;
+  localStorage.removeItem('cortesia_role');
+  localStorage.removeItem('cortesia_pessoa');
+  voltarStep1();
+  showLogin();
+}
 
 // Helper: verifica se usuário tem permissão de gestor
 function isGestor(){ return USER_ROLE === 'gestor'; }
@@ -3868,34 +3959,48 @@ let USER_PERSON = localStorage.getItem('cortesia_pessoa') || null;
 function mostrarRoleApp(role){
   document.querySelector('.tabs').style.display = 'none';
   document.querySelector('.main').style.display = 'none';
-  document.getElementById('lider-app').style.display = role === 'lider' ? 'block' : 'none';
-  document.getElementById('tecnico-app').style.display = role === 'tecnico' ? 'block' : 'none';
+  const la = document.getElementById('lider-app');
+  const ta = document.getElementById('tecnico-app');
+  la.style.display = role==='lider' ? 'flex' : 'none';
+  ta.style.display = role==='tecnico' ? 'flex' : 'none';
 }
 
 function esconderRoleApp(){
-  document.querySelector('.tabs').style.display = '';
-  document.querySelector('.main').style.display = '';
-  document.getElementById('lider-app').style.display = 'none';
-  document.getElementById('tecnico-app').style.display = 'none';
+  const tabs = document.querySelector('.tabs');
+  const main = document.querySelector('.main');
+  if(tabs) tabs.style.display = '';
+  if(main) main.style.display = '';
+  const la = document.getElementById('lider-app');
+  const ta = document.getElementById('tecnico-app');
+  if(la) la.style.display = 'none';
+  if(ta) ta.style.display = 'none';
 }
+
+// Mapeamento de seção → ID do botão nav
+const LIDER_NAV = {painel:'lnav-painel',os:'lnav-os',validar:'lnav-validar',equipe:'lnav-equipe',relatorio:'lnav-relatorio',preordem:'lnav-preordem'};
+const TECNICO_NAV = {meudo:'tnav-meudo',minhasos:'tnav-minhasos',preordem:'tnav-preordem'};
 
 function raTab(app, section){
   const appEl = document.getElementById(app+'-app');
   appEl.querySelectorAll('.ra-section').forEach(s=>s.classList.remove('active'));
-  appEl.querySelectorAll('.ra-tab').forEach(t=>t.classList.remove('active'));
   const sec = document.getElementById(app+'-'+section);
   if(sec) sec.classList.add('active');
-  event?.target?.classList.add('active');
-  // Render ao trocar aba
+  // Atualizar bottom nav
+  const navMap = app==='lider' ? LIDER_NAV : TECNICO_NAV;
+  Object.values(navMap).forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  const activeNav = navMap[section];
+  if(activeNav){ const el=document.getElementById(activeNav); if(el) el.classList.add('active'); }
+  // Render
   if(app==='lider'){
-    if(section==='painel') renderLiderPainel();
-    if(section==='os') renderLiderOS();
-    if(section==='relatorio') renderLiderRelatorio();
-    if(section==='equipe') renderLiderEquipe();
+    if(section==='painel')   renderLiderPainel();
+    if(section==='os')       renderLiderOS();
+    if(section==='validar')  renderLiderValidar();
+    if(section==='equipe')   renderLiderEquipe();
+    if(section==='relatorio')renderLiderRelatorio();
     if(section==='preordem') popularUsinasSelect('l-pre-usina');
   }
   if(app==='tecnico'){
-    if(section==='meudo') renderTecnicoDia();
+    if(section==='meudo')    renderTecnicoDia();
     if(section==='minhasos') renderTecnicoOS();
     if(section==='preordem') popularUsinasSelect('t-pre-usina');
   }
@@ -3904,7 +4009,6 @@ function raTab(app, section){
 function renderRoleApp(){
   if(USER_ROLE === 'lider'){
     mostrarRoleApp('lider');
-    // Preencher nome no topbar
     const el = document.getElementById('lider-topbar-nome');
     if(el && USER_PERSON) el.textContent = USER_PERSON.split(' ')[0];
     renderLiderPainel();
@@ -3917,7 +4021,7 @@ function renderRoleApp(){
 }
 
 function getUserRegional(){
-  const p = equipe.find(x=>x.nome === USER_PERSON);
+  const p = equipe.find(x=>x.nome===USER_PERSON);
   return p ? p.reg : null;
 }
 
@@ -3927,135 +4031,213 @@ function popularUsinasSelect(selId){
   sel.innerHTML = '<option value="">Selecione...</option>' + usinas.map(u=>`<option value="${esc(u)}">${esc(u)}</option>`).join('');
 }
 
-// Verifica se uma OS é genuinamente pendente:
-// - status não concluído/cancelado
-// - data principal no passado
-// - NÃO tem nenhuma data (principal ou em datas[]) >= hoje (ou seja, não foi reagendada)
+// OS é genuinamente pendente (passada, sem data futura agendada)
 function osEhPendente(o, dt){
   if(['concluida','cancelada'].includes(o.status)) return false;
-  if(!o.data || o.data >= dt) return false; // sem data ou data futura = não é pendente
-  // Se tem alguma data futura ou hoje agendada, não é pendente
-  if(osMatchData(o, dt)) return false; // agendada para hoje
+  if(!o.data || o.data >= dt) return false;
+  if(osMatchData(o, dt)) return false;
   const datas = o.datas || [];
-  if(datas.some(d => d >= dt)) return false; // reagendada para o futuro
+  if(datas.some(d => d >= dt)) return false;
   return true;
+}
+
+// ── CARD DE OS (mobile) ──
+function raOsCard(o, isModoLider){
+  const dt = today();
+  const urgente = ['alta','urgente'].includes(o.prioridade);
+  const atualizacoes = o.atualizacoes || [];
+  const pendValidacao = atualizacoes.filter(a=>!a.validado).length;
+
+  // Log de atualizações
+  let logHtml = '';
+  if(atualizacoes.length){
+    logHtml = `<div class="ra-os-log">
+      <div style="font-size:.7rem;font-weight:700;color:var(--mut);margin-bottom:4px">📋 Progresso registrado (${atualizacoes.length})</div>
+      ${atualizacoes.slice(-3).map(a=>`
+        <div class="ra-os-log-row">
+          <span style="font-weight:600">${fmtDate(a.data)}</span> — ${esc(a.descricao).substring(0,80)}${a.descricao.length>80?'…':''}
+          ${!a.validado ? '<span class="ra-os-log-pendente"> ⏳ aguardando validação</span>' : '<span style="color:#16a34a;font-size:.7rem"> ✅</span>'}
+        </div>`).join('')}
+      ${pendValidacao && isModoLider ? `<div style="color:#d97706;font-size:.72rem;margin-top:4px;font-weight:700">⚠️ ${pendValidacao} atualização${pendValidacao>1?'ões':''} aguardando sua validação</div>` : ''}
+    </div>`;
+  }
+
+  // Botões de ação
+  let btns = '';
+  if(!['concluida','cancelada'].includes(o.status)){
+    if(isModoLider){
+      btns = `<div class="ra-actions">
+        ${o.status==='aberta'?`<button class="ra-btn-action ra-btn-start" onclick="raAbrirCheckin(${o.id})">▶ Iniciar</button>`:''}
+        ${o.status!=='aberta'?`<button class="ra-btn-action ra-btn-update" onclick="raAbrirProgresso(${o.id})">📝 Progresso</button>`:''}
+        <button class="ra-btn-action ra-btn-close2" onclick="raAbrirFechar(${o.id})">✅ Concluir</button>
+      </div>`;
+    } else {
+      btns = `<div class="ra-actions">
+        ${o.status==='aberta'?`<button class="ra-btn-action ra-btn-start" onclick="raAbrirCheckin(${o.id})">▶ Iniciar OS</button>`:''}
+        ${o.status==='andamento'?`<button class="ra-btn-action ra-btn-update" onclick="raAbrirProgresso(${o.id})">📝 Registrar progresso</button>`:''}
+        ${o.status==='andamento'?`<button class="ra-btn-action ra-btn-close2" onclick="raAbrirFechar(${o.id})">✅ Concluir</button>`:''}
+      </div>`;
+    }
+  }
+
+  const statusCor = {aberta:'#1d4ed8',andamento:'#16a34a',aguardando_peca:'#d97706',concluida:'#6b7280',cancelada:'#dc2626'};
+  return `<div class="ra-os-card ${urgente?'urgente':''} ${o.status==='andamento'?'andamento':''}">
+    <div class="ra-os-num">
+      <span style="background:${statusCor[o.status]||'#1B2D5F'};color:#fff;padding:2px 8px;border-radius:20px;font-size:.68rem">${STS_LBL[o.status]||o.status}</span>
+      <span style="font-weight:800">${esc(o.num)}</span>
+      ${bP(o.prioridade)}
+    </div>
+    <div class="ra-os-desc">${esc(o.descricao)}</div>
+    <div class="ra-os-meta">
+      📍 ${esc(o.usina)}<br>
+      👤 ${esc(o.responsavel)} · 📅 ${fmtDate(o.data)}
+      ${o.dtInicioReal?`<br>⏱ Iniciada em ${fmtDate(o.dtInicioReal)}`:''}
+    </div>
+    ${logHtml}
+    ${btns}
+  </div>`;
 }
 
 // ── LÍDER ──
 function renderLiderPainel(){
   const reg = getUserRegional();
   const dt  = today();
-  document.getElementById('l-regional-nome').textContent = reg === 'norte' ? '🟣 Norte' : '🔵 Sul';
+  if(!reg){ document.getElementById('l-regional-nome').textContent='—'; return; }
+  document.getElementById('l-regional-nome').textContent = reg==='norte'?'🟣 Norte':'🔵 Sul';
 
-  // OS do dia na regional (agendadas para hoje, não canceladas)
-  const osHoje = osList.filter(o=>
-    osMatchData(o,dt) && o.reg===reg && o.status!=='cancelada'
-  );
-  const elHoje = document.getElementById('l-os-hoje');
-  elHoje.innerHTML = osHoje.length ? osHoje.map(o=>raOsCard(o,true)).join('') :
-    '<div class="ra-empty">Nenhuma OS agendada para hoje nesta regional.</div>';
+  const osHoje = osList.filter(o=> osMatchData(o,dt) && o.reg===reg && o.status!=='cancelada');
+  const pendentes = osList.filter(o=> o.reg===reg && osEhPendente(o,dt)).sort((a,b)=>a.data<b.data?-1:1);
+  const abertas = osList.filter(o=> o.reg===reg && ['aberta','andamento','aguardando_peca'].includes(o.status));
 
-  // OS pendentes: abertas/em atraso real (sem data futura reagendada)
-  const pendentes = osList.filter(o=> o.reg===reg && osEhPendente(o, dt))
-    .sort((a,b)=> a.data < b.data ? -1 : 1);
-  const elPend = document.getElementById('l-os-pendentes');
-  elPend.innerHTML = pendentes.length ? pendentes.map(o=>raOsCard(o,true)).join('') :
-    '<div class="ra-empty">✅ Sem pendências em atraso.</div>';
+  // KPIs
+  const kpiEl = document.getElementById('l-kpi-row');
+  if(kpiEl) kpiEl.innerHTML = `
+    <div class="ra-kpi"><div class="ra-kpi-val" style="color:#1d4ed8">${osHoje.length}</div><div class="ra-kpi-lbl">Hoje</div></div>
+    <div class="ra-kpi"><div class="ra-kpi-val" style="color:#d97706">${abertas.length}</div><div class="ra-kpi-lbl">Abertas</div></div>
+    <div class="ra-kpi"><div class="ra-kpi-val" style="color:#dc2626">${pendentes.length}</div><div class="ra-kpi-lbl">Atrasadas</div></div>`;
 
-  // Equipe no dia — grade igual ao painel do gestor
+  document.getElementById('l-os-hoje').innerHTML = osHoje.length
+    ? osHoje.map(o=>raOsCard(o,true)).join('')
+    : '<div class="ra-empty">📋 Nenhuma OS agendada hoje.</div>';
+  document.getElementById('l-os-pendentes').innerHTML = pendentes.length
+    ? pendentes.map(o=>raOsCard(o,true)).join('')
+    : '<div class="ra-empty">✅ Nenhum atraso.</div>';
+
+  // Equipe
   const membros = equipe.filter(p=>p.reg===reg && isMembroAtivo(p));
-  let busy = 0, idle = 0;
-  const elEq = document.getElementById('l-equipe-dia');
-  elEq.innerHTML = membros.map(p=>{
+  let busy=0,idle=0;
+  document.getElementById('l-equipe-dia').innerHTML = membros.map(p=>{
     const minhas = osHoje.filter(o=>o.responsavel===p.nome||(o.equipe||[]).includes(p.nome));
-    const isBusy = minhas.length > 0;
-    if(isBusy) busy++; else idle++;
-    const osInfo = isBusy
-      ? `<div class="avail-os">● ${minhas.map(o=>abrevUsina(o.usina)).join(', ')}</div>`
-      : `<div class="avail-idle-lbl">○ Livre</div>`;
-    return `<div class="avail-card ${isBusy?'busy':'idle'}">
-      <div class="avail-name" title="${esc(p.nome)}">${esc(p.nome)}</div>
-      <div class="avail-role">${esc(p.func||'')}</div>
-      ${osInfo}
+    const ativo = minhas.length>0;
+    if(ativo) busy++; else idle++;
+    return `<div class="ra-equipe-card ${ativo?'alocado':'livre'}">
+      <div class="ra-equipe-nome">${initials(p.nome)} ${esc(p.nome.split(' ')[0])}</div>
+      <div class="ra-equipe-func">${esc(p.func)}</div>
+      <div class="ra-equipe-status">${ativo?'● '+minhas.map(o=>abrevUsina(o.usina)).join(', '):'○ Livre'}</div>
     </div>`;
-  }).join('') || '<div class="ra-empty">Nenhum membro ativo nesta regional.</div>';
-  const sumEl = document.getElementById('l-eq-sum');
-  if(sumEl) sumEl.textContent = `${busy} alocado${busy!==1?'s':''} · ${idle} livre${idle!==1?'s':''}`;
+  }).join('') || '<div class="ra-empty">Nenhum membro ativo.</div>';
+  const sumEl=document.getElementById('l-eq-sum');
+  if(sumEl) sumEl.textContent=`${busy} aloc. · ${idle} livre${idle!==1?'s':''}`;
 }
 
 function renderLiderOS(){
   const reg = getUserRegional();
   const filtro = document.getElementById('l-os-filtro')?.value;
-  // Default: mostrar só abertas (aberta, andamento, aguardando_peca)
-  const statusAbertos = ['aberta','andamento','aguardando_peca'];
   const lista = osList.filter(o=>{
-    if(o.reg !== reg) return false;
-    if(filtro === '') return o.status !== 'cancelada'; // "todas" exceto canceladas
-    if(filtro) return o.status === filtro;
-    return statusAbertos.includes(o.status); // default: só abertas
+    if(o.reg!==reg) return false;
+    if(filtro==='') return o.status!=='cancelada';
+    if(filtro) return o.status===filtro;
+    return ['aberta','andamento','aguardando_peca'].includes(o.status);
   }).sort((a,b)=>b.data.localeCompare(a.data));
-  const el = document.getElementById('l-os-lista');
-  el.innerHTML = lista.length ? lista.map(o=>raOsCard(o,true)).join('') :
-    '<div class="ra-empty">Nenhuma OS encontrada para este filtro.</div>';
+  document.getElementById('l-os-lista').innerHTML = lista.length
+    ? lista.map(o=>raOsCard(o,true)).join('')
+    : '<div class="ra-empty">Nenhuma OS encontrada.</div>';
+}
+
+function renderLiderValidar(){
+  const reg = getUserRegional();
+  // Atualizações pendentes de qualquer OS desta regional
+  const pendentes = [];
+  osList.filter(o=>o.reg===reg).forEach(o=>{
+    (o.atualizacoes||[]).filter(a=>!a.validado).forEach(a=>{
+      pendentes.push({os:o, atualizacao:a});
+    });
+  });
+  const el = document.getElementById('l-validar-lista');
+  if(!pendentes.length){
+    el.innerHTML = '<div class="ra-empty">✅ Nenhuma atualização pendente de validação.</div>';
+    // Atualizar badge no nav
+    const nav = document.getElementById('lnav-validar');
+    if(nav) nav.querySelector('.ico').textContent = '✅';
+    return;
+  }
+  const nav = document.getElementById('lnav-validar');
+  if(nav) nav.querySelector('.ico').textContent = `✅${pendentes.length>0?'('+pendentes.length+')':''}`;
+  el.innerHTML = pendentes.map(({os,atualizacao})=>`
+    <div class="ra-os-card" style="margin-bottom:10px;">
+      <div class="ra-os-num"><span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:20px;font-size:.68rem">⏳ Pendente</span> <b>${esc(os.num)}</b></div>
+      <div class="ra-os-desc">${esc(os.descricao)}</div>
+      <div class="ra-os-meta">📍 ${esc(os.usina)} · 👤 ${esc(atualizacao.pessoa)} · 📅 ${fmtDate(atualizacao.data)}</div>
+      <div style="background:#fffbeb;border-radius:8px;padding:10px;margin:8px 0;font-size:.82rem;border:1px solid #fde68a">
+        <b>O que foi feito:</b><br>${esc(atualizacao.descricao)}
+        ${atualizacao.horas?`<br><span style="color:var(--mut)">⏱ ${atualizacao.horas}h trabalhadas</span>`:''}
+        ${atualizacao.necessidade?`<br><b>Próximo dia:</b> ${esc(atualizacao.necessidade)}`:''}
+      </div>
+      <div class="ra-actions">
+        <button class="ra-btn-action ra-btn-close2" onclick="validarAtualizacao(${os.id},'${atualizacao.id}',true)">✅ Aprovar</button>
+        <button class="ra-btn-action" style="background:#fee2e2;color:#991b1b" onclick="validarAtualizacao(${os.id},'${atualizacao.id}',false)">❌ Recusar</button>
+      </div>
+    </div>`).join('');
 }
 
 function renderLiderEquipe(){
   const reg = getUserRegional();
   const membros = equipe.filter(p=>p.reg===reg);
   document.getElementById('l-equipe-reg-nome').textContent = reg==='norte'?'🟣 Norte':'🔵 Sul';
-  const el = document.getElementById('l-equipe-lista');
-  el.innerHTML = membros.map(p=>{
+  document.getElementById('l-equipe-lista').innerHTML = membros.map(p=>{
     const osAbertas = osList.filter(o=>['aberta','andamento'].includes(o.status)&&(o.responsavel===p.nome||(o.equipe||[]).includes(p.nome))).length;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
-      <div class="avatar" style="background:${p.cor||'#1B2D5F'};width:34px;height:34px;">${initials(p.nome)}</div>
+    return `<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f0f0;">
+      <div class="avatar" style="background:${p.cor||'#1B2D5F'};width:38px;height:38px;">${initials(p.nome)}</div>
       <div style="flex:1">
-        <div style="font-weight:600;font-size:.84rem">${esc(p.nome)}</div>
-        <div style="font-size:.72rem;color:var(--mut)">${esc(p.func)}</div>
+        <div style="font-weight:700;font-size:.88rem">${esc(p.nome)}</div>
+        <div style="font-size:.73rem;color:var(--mut)">${esc(p.func)}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:.8rem;font-weight:700;color:${osAbertas?'#dc2626':'#16a34a'}">${osAbertas} OS abertas</div>
+        <div style="font-size:.82rem;font-weight:700;color:${osAbertas?'#dc2626':'#16a34a'}">${osAbertas} em aberto</div>
         <div style="font-size:.68rem;color:var(--mut)">${isMembroAtivo(p)?'✅ Ativo':'⏸ Afastado'}</div>
       </div>
     </div>`;
-  }).join('') || '<div class="ra-empty">Nenhum membro nesta regional.</div>';
+  }).join('') || '<div class="ra-empty">Nenhum membro.</div>';
 }
 
 function renderLiderRelatorio(){
   const reg = getUserRegional();
   const sel = document.getElementById('l-rel-mes');
   const dt = today();
-  // Popular meses disponíveis (últimos 6)
-  if(sel && sel.options.length === 0){
-    for(let i = 0; i < 6; i++){
-      const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
-      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0');
-      const val = `${y}-${m}`;
-      const lbl = `${MESES[d.getMonth()]} ${y}`;
-      const opt = document.createElement('option');
-      opt.value = val; opt.textContent = lbl;
+  if(sel && sel.options.length===0){
+    for(let i=0;i<6;i++){
+      const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+      const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0');
+      const opt=document.createElement('option');
+      opt.value=`${y}-${m}`; opt.textContent=`${MESES[d.getMonth()]} ${y}`;
       sel.appendChild(opt);
     }
   }
   const mes = sel?.value || dt.slice(0,7);
-  document.getElementById('l-rel-nome').textContent = reg === 'norte' ? '🟣 Norte' : '🔵 Sul';
-
-  const osDoMes = osList.filter(o => o.reg === reg && o.data && o.data.startsWith(mes));
-  const concluidas = osDoMes.filter(o => o.status === 'concluida');
-  const abertas    = osList.filter(o => o.reg === reg && ['aberta','andamento','aguardando_peca'].includes(o.status));
-  const pendentes  = osList.filter(o => o.reg === reg && osEhPendente(o, dt));
-
+  document.getElementById('l-rel-nome').textContent = reg==='norte'?'🟣 Norte':'🔵 Sul';
+  const osDoMes = osList.filter(o=>o.reg===reg && o.data?.startsWith(mes));
+  const concluidas = osDoMes.filter(o=>o.status==='concluida');
+  const abertas = osList.filter(o=>o.reg===reg && ['aberta','andamento','aguardando_peca'].includes(o.status));
+  const pendentes = osList.filter(o=>o.reg===reg && osEhPendente(o,dt));
   document.getElementById('l-rel-conc').textContent = concluidas.length;
-  document.getElementById('l-rel-ab').textContent   = abertas.length;
+  document.getElementById('l-rel-ab').textContent = abertas.length;
   document.getElementById('l-rel-pend').textContent = pendentes.length;
-
-  const lista = document.getElementById('l-rel-lista');
-  lista.innerHTML = concluidas.length
+  document.getElementById('l-rel-lista').innerHTML = concluidas.length
     ? concluidas.sort((a,b)=>b.data.localeCompare(a.data)).map(o=>`
-      <div class="ra-os-card" style="border-left:3px solid #16a34a;opacity:.9;">
-        <div class="ra-os-num">${esc(o.num)} ${bS(o.status)}</div>
+      <div class="ra-os-card">
+        <div class="ra-os-num"><span style="background:#16a34a;color:#fff;padding:2px 8px;border-radius:20px;font-size:.68rem">Concluída</span> <b>${esc(o.num)}</b></div>
         <div class="ra-os-desc">${esc(o.descricao)}</div>
-        <div class="ra-os-meta">${esc(o.usina)} · ${esc(o.responsavel)} · Concluída em ${fmtDate(o.dtReal||o.data)}</div>
-        ${o.custoR ? `<div style="font-size:.72rem;color:#16a34a;margin-top:2px">Custo: ${fmtMoney(o.custoR)}</div>` : ''}
+        <div class="ra-os-meta">📍 ${esc(o.usina)} · 👤 ${esc(o.responsavel)}<br>✅ ${fmtDate(o.dtReal||o.data)}${o.custoR?` · 💰 ${fmtMoney(o.custoR)}`:''}</div>
       </div>`).join('')
     : '<div class="ra-empty">Nenhuma OS concluída neste período.</div>';
 }
@@ -4124,31 +4306,93 @@ function tecnicoEnviarPreOrdem(){
   raTab('tecnico','meudo');
 }
 
-// Card de OS para os apps de líder/técnico
-function raOsCard(o, mostrarBtns){
-  const urgente = o.prioridade === 'alta' || o.prioridade === 'urgente';
-  const em = o.status === 'andamento';
-  return `<div class="ra-os-card ${urgente?'urgente':''} ${em?'andamento':''}">
-    <div class="ra-os-num">${esc(o.num)} ${bS(o.status)} ${bP(o.prioridade)}</div>
-    <div class="ra-os-desc">${esc(o.descricao)}</div>
-    <div class="ra-os-meta">${esc(o.usina)} · ${esc(o.responsavel)} · ${fmtDate(o.data)}</div>
-    ${mostrarBtns ? `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-      ${o.status==='aberta'?`<button class="ra-btn ra-btn-blue" onclick="raIniciarOS(${o.id})">▶ Iniciar</button>`:''}
-      ${!['concluida','cancelada'].includes(o.status)?`<button class="ra-btn ra-btn-green" onclick="raAbrirFechar(${o.id})">✅ Fechar OS</button>`:''}
-    </div>` : `<div style="margin-top:8px;">
-      ${!['concluida','cancelada'].includes(o.status)?`<button class="ra-btn ra-btn-green" onclick="raAbrirFechar(${o.id})">✅ Fechar OS</button>`:''}
-    </div>`}
-  </div>`;
+// ── CHECK-IN (Iniciar OS + EPI) ──
+let _raCheckinId = null;
+function raAbrirCheckin(id){
+  const o = osList.find(x=>x.id===id); if(!o) return;
+  _raCheckinId = id;
+  document.getElementById('ci-num').textContent  = o.num;
+  document.getElementById('ci-desc').textContent = o.descricao;
+  document.getElementById('ci-obs').value = '';
+  ['epi1','epi2','epi3','epi4','epi5'].forEach(eid=>{ const el=document.getElementById(eid); if(el) el.checked=false; });
+  document.getElementById('modal-checkin').classList.add('open');
 }
 
-// Iniciar OS (muda status para andamento)
-async function raIniciarOS(id){
+async function confirmarCheckin(){
+  const o = osList.find(x=>x.id===_raCheckinId); if(!o) return;
+  const epiCheckin = ['epi1','epi2','epi3','epi4','epi5'].map(eid=>{
+    const el=document.getElementById(eid);
+    return el ? (el.checked?'✅':'⬜')+' '+el.closest('label').textContent.trim() : '';
+  }).filter(Boolean);
+  const obsCheckin = document.getElementById('ci-obs').value.trim();
+  o.status       = 'andamento';
+  o.dtInicioReal = today();
+  o.epiCheckin   = epiCheckin;
+  if(obsCheckin) o.obsCheckin = obsCheckin;
+  if(!o.atualizacoes) o.atualizacoes = [];
+  saveLocal();
+  fovId('modal-checkin');
+  await salvarOSremoto(o);
+  toast('OS iniciada! EPI confirmado ✓');
+  renderRoleApp();
+}
+
+// ── PROGRESSO DIÁRIO ──
+let _raProgressoId = null;
+function raAbrirProgresso(id){
   const o = osList.find(x=>x.id===id); if(!o) return;
-  o.status = 'andamento';
+  _raProgressoId = id;
+  document.getElementById('pg-num').textContent = o.num;
+  document.getElementById('pg-descricao').value  = '';
+  document.getElementById('pg-data').value       = today();
+  document.getElementById('pg-horas').value      = '';
+  document.getElementById('pg-necessidade').value= '';
+  document.getElementById('modal-progresso').classList.add('open');
+}
+
+async function confirmarProgresso(){
+  const o = osList.find(x=>x.id===_raProgressoId); if(!o) return;
+  const descricao    = document.getElementById('pg-descricao').value.trim();
+  const data         = document.getElementById('pg-data').value || today();
+  const horas        = document.getElementById('pg-horas').value || '';
+  const necessidade  = document.getElementById('pg-necessidade').value.trim();
+  if(!descricao){ toast('Descreva o que foi feito hoje.','err'); return; }
+  if(!o.atualizacoes) o.atualizacoes = [];
+  o.atualizacoes.push({
+    id: String(Date.now()),
+    pessoa: USER_PERSON,
+    data, descricao, horas, necessidade,
+    validado: false
+  });
+  saveLocal();
+  fovId('modal-progresso');
+  await salvarOSremoto(o);
+  toast('Progresso salvo! Aguardando validação do líder ✓');
+  renderRoleApp();
+}
+
+// ── VALIDAR ATUALIZAÇÃO (Líder) ──
+async function validarAtualizacao(osId, atualizacaoId, aprovado){
+  const o = osList.find(x=>x.id===osId); if(!o) return;
+  const a = (o.atualizacoes||[]).find(x=>x.id===atualizacaoId); if(!a) return;
+  if(aprovado){
+    a.validado     = true;
+    a.validadoPor  = USER_PERSON;
+    a.validadoEm   = today();
+  } else {
+    o.atualizacoes = o.atualizacoes.filter(x=>x.id!==atualizacaoId);
+    toast('Atualização recusada.','warn');
+  }
   saveLocal();
   await salvarOSremoto(o);
-  toast('OS iniciada! ✓');
-  renderRoleApp();
+  if(aprovado) toast('Atualização aprovada ✓');
+  renderLiderValidar();
+  const badge = document.getElementById('lnav-validar');
+  if(badge){
+    const pend = osList.filter(x=>x.reg===getUserRegional())
+      .flatMap(x=>x.atualizacoes||[]).filter(x=>!x.validado).length;
+    badge.querySelector('.ico').textContent = pend>0 ? `✅(${pend})` : '✅';
+  }
 }
 
 // Abrir modal de fechar OS
@@ -4161,7 +4405,7 @@ function raAbrirFechar(id){
   document.getElementById('fra-custo').value = '';
   document.getElementById('fra-relato').value = '';
   document.getElementById('fra-foto-preview').style.display = 'none';
-  ['chk1','chk2','chk3','chk4','chk5'].forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
+  ['chk1','chk2','chk3','chk4'].forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
   document.getElementById('modal-fechar-ra').classList.add('open');
 }
 
@@ -4184,7 +4428,7 @@ async function confirmarFecharRA(){
   const o = osList.find(x=>x.id===_raFecharId); if(!o) return;
   const relato = document.getElementById('fra-relato').value.trim();
   if(!relato){ toast('Descreva o serviço executado.','err'); return; }
-  const chks = ['chk1','chk2','chk3','chk4','chk5'].map(id=>{
+  const chks = ['chk1','chk2','chk3','chk4'].map(id=>{
     const el=document.getElementById(id);
     return el ? (el.checked?'✅':'⬜') + ' ' + el.closest('label').textContent.trim() : '';
   }).filter(Boolean);
