@@ -1161,7 +1161,10 @@ input[readonly]{background:#f8fafc;cursor:default;}
         <div class="ra-topbar-role">🦺 Líder de Equipe</div>
       </div>
     </div>
-    <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
+    <div style="display:flex;gap:7px;align-items:center;">
+      <button class="ra-btn-sair" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:7px 10px;border-radius:8px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;" onclick="raSyncManual()" title="Sincronizar com nuvem">🔄</button>
+      <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
+    </div>
   </div>
 
   <div class="ra-content">
@@ -1272,7 +1275,10 @@ input[readonly]{background:#f8fafc;cursor:default;}
         <div class="ra-topbar-role">🔧 Técnico / Operacional</div>
       </div>
     </div>
-    <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
+    <div style="display:flex;gap:7px;align-items:center;">
+      <button class="ra-btn-sair" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:7px 10px;border-radius:8px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;" onclick="raSyncManual()" title="Sincronizar com nuvem">🔄</button>
+      <button class="ra-btn-sair" onclick="doLogout()">⎋ Sair</button>
+    </div>
   </div>
 
   <div class="ra-content">
@@ -1900,8 +1906,10 @@ async function syncSupabase(){
 
 function toSBRow(o){
   // datas e equipe devem ser arrays reais (jsonb no Supabase), não strings JSON
-  const datas  = Array.isArray(o.datas)  ? o.datas  : (typeof o.datas==='string'  ? JSON.parse(o.datas||'[]')  : []);
-  const equipe = Array.isArray(o.equipe) ? o.equipe : (typeof o.equipe==='string' ? JSON.parse(o.equipe||'[]') : []);
+  const datas        = Array.isArray(o.datas)       ? o.datas       : (typeof o.datas==='string'       ? JSON.parse(o.datas||'[]')       : []);
+  const equipe       = Array.isArray(o.equipe)      ? o.equipe      : (typeof o.equipe==='string'      ? JSON.parse(o.equipe||'[]')      : []);
+  const atualizacoes = Array.isArray(o.atualizacoes)? o.atualizacoes: [];
+  const epi_checkin  = Array.isArray(o.epiCheckin)  ? o.epiCheckin  : (o.epiCheckin||null);
   return {
     numero_os:o.num, data:o.data,
     datas,
@@ -1911,13 +1919,18 @@ function toSBRow(o){
     descricao:o.descricao, dt_conclusao_prevista:o.dtConc||null, dt_realizada:o.dtReal||null,
     custo_previsto:o.custoP?parseFloat(o.custoP):null,
     custo_real:o.custoR?parseFloat(o.custoR):null,
-    obs:o.obs||null
+    obs:o.obs||null,
+    // Campos novos (progresso + check-in)
+    atualizacoes,
+    dt_inicio_real: o.dtInicioReal||null,
+    epi_checkin,
+    obs_checkin: o.obsCheckin||null
   };
 }
 function fromSBRow(r){
   return {
-    id:   r.id,     // usa o id inteiro do Supabase como id local — estável entre syncs
-    sbId: r.id,     // mantido por compatibilidade com PATCH/DELETE
+    id:   r.id,
+    sbId: r.id,
     pendente: false,
     num:r.numero_os, data:r.data,
     datas: Array.isArray(r.datas)?r.datas:(typeof r.datas==='string'?JSON.parse(r.datas||'[]'):[]),
@@ -1925,7 +1938,12 @@ function fromSBRow(r){
     equipe:Array.isArray(r.equipe)?r.equipe:(typeof r.equipe==='string'?JSON.parse(r.equipe||'[]'):[]),
     usina:r.usina, tipo:r.tipo, grupo:r.grupo||'', prioridade:r.prioridade, status:r.status,
     descricao:r.descricao, dtConc:r.dt_conclusao_prevista||'', dtReal:r.dt_realizada||'',
-    custoP:r.custo_previsto||'', custoR:r.custo_real||'', obs:r.obs||'', criadoEm:r.criado_em
+    custoP:r.custo_previsto||'', custoR:r.custo_real||'', obs:r.obs||'', criadoEm:r.criado_em,
+    // Campos novos
+    atualizacoes: Array.isArray(r.atualizacoes)?r.atualizacoes:[],
+    dtInicioReal: r.dt_inicio_real||'',
+    epiCheckin:   r.epi_checkin||null,
+    obsCheckin:   r.obs_checkin||''
   };
 }
 // Mapeia row do Supabase (equipe_membros) → objeto local
@@ -3430,7 +3448,11 @@ async function pullFromCloud(showToast=true){
     SB.get('ordens_servico','select=*&order=data.desc'),
     SB.get('equipe_membros','select=*&order=id.asc')
   ]);
-  if(remote === null){ setSBDot(false); return; }
+  if(remote === null){
+    setSBDot(false);
+    if(showToast) toast('❌ Falha ao conectar com Supabase. Verifique a chave e a URL.','err');
+    return;
+  }
   // Envia OS locais pendentes antes de sobrescrever
   const pendentes = osList.filter(o => o.pendente);
   for(const o of pendentes){
@@ -3450,8 +3472,12 @@ async function pullFromCloud(showToast=true){
   }
   saveLocal();
   setSBDot(true);
+  // Atualiza vistas do Gestor
   renderDashboard(); renderLista(); renderHistorico(); renderKanban();
   if(document.getElementById('tab-equipe')?.style.display!=='none') renderEquipe();
+  // Atualiza vistas do Líder/Técnico (PIN users)
+  if(USER_ROLE === 'lider')   renderRoleApp();
+  if(USER_ROLE === 'tecnico') renderRoleApp();
   if(showToast) toast(`☁ ${osList.length} OS sincronizadas`);
   // Atualiza badge de pendentes
   const p = osList.filter(o=>o.pendente).length;
@@ -3761,16 +3787,16 @@ function conectarRealtime(){
   _wsRealtime.onerror = ()=>{ _setRtIndicator(false); };
 }
 
-// Auto-refresh: fallback polling a cada 10s (o Realtime já cobre o tempo real)
+// Auto-refresh: polling a cada 15s — funciona para Gestor (AUTH.logged) e PIN users (USER_ROLE)
 let _autoRefreshTimer = null;
 function startAutoRefresh(){
-  if(_autoRefreshTimer) return;
+  if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   _autoRefreshTimer = setInterval(async()=>{
-    if(!document.hidden && AUTH.logged) await pullFromCloud(false);
-  }, 10000); // reduzido de 30s → 10s como fallback
+    if(!document.hidden && SB.ok) await pullFromCloud(false);
+  }, 15000);
 }
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden && AUTH.logged) pullFromCloud(false);
+  if(!document.hidden && SB.ok) pullFromCloud(false);
 });
 
 // Verificar autenticação e carregar dados automaticamente
@@ -3963,6 +3989,15 @@ function mostrarRoleApp(role){
   const ta = document.getElementById('tecnico-app');
   la.style.display = role==='lider' ? 'flex' : 'none';
   ta.style.display = role==='tecnico' ? 'flex' : 'none';
+}
+
+// Sync manual acionado pelo botão 🔄 na topbar
+async function raSyncManual(){
+  if(!SB.ok){
+    toast('Supabase não configurado.','err'); return;
+  }
+  toast('🔄 Sincronizando...','info');
+  await pullFromCloud(true);
 }
 
 function esconderRoleApp(){
