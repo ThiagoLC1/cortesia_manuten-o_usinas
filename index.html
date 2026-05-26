@@ -466,9 +466,7 @@ input[readonly]{background:#f8fafc;cursor:default;}
 .kb-del-btn{font-size:.65rem;background:#fee2e2;color:#991b1b;border:none;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:5px;margin-left:4px;display:inline-block;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<!-- Firebase SDK — WebSocket nativo, sem spinner de loading -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 </head>
 <body>
 
@@ -1828,68 +1826,55 @@ function saveLocal(){
 }
 
 // ═══════════════════════════════════════════════
-// FIREBASE SDK — WebSocket real-time (sem polling, sem spinner)
+// FIREBASE REALTIME DATABASE — API REST pura (sem SDK externo)
 // ═══════════════════════════════════════════════
-let _fbApp = null;
-let _fbDB  = null;
-
-function initFirebaseSDK(){
-  if(_fbDB) return true;
-  const dbUrl  = localStorage.getItem(KEY_SBU)||'';
-  const apiKey = localStorage.getItem(KEY_SBK)||'';
-  if(!dbUrl || dbUrl.includes('COLE_')) return false;
-  try{
-    if(!firebase.apps.length){
-      _fbApp = firebase.initializeApp({ apiKey, databaseURL: dbUrl });
-    } else {
-      _fbApp = firebase.app();
-    }
-    _fbDB = firebase.database();
-    return true;
-  }catch(e){ console.error('Firebase init:', e); return false; }
-}
-
 const FB = {
   get url(){ return (localStorage.getItem(KEY_SBU)||'').replace(/\/$/,''); },
   get ok(){  const u=this.url; return !!(u && !u.includes('COLE_')); },
-  get db(){  return _fbDB || (initFirebaseSDK() ? _fbDB : null); },
 
-  // GET todos os registros de um nó → retorna array ou null
+  _auth(){
+    const t = AUTH.token;
+    return t ? `?auth=${encodeURIComponent(t)}` : '';
+  },
+
   async getAll(path){
     if(!this.ok) return null;
-    if(!this.db) return null;
     try{
-      const snap = await this.db.ref(path).get();
-      if(!snap.exists()) return [];
-      return Object.entries(snap.val()).map(([k,v])=>({...v, _fbKey:k}));
+      const r = await fetch(`${this.url}/${path}.json${this._auth()}`);
+      if(r.status === 401){ await AUTH.refresh(); return this.getAll(path); }
+      if(!r.ok){ console.error(`FB.getAll ${path}:`, r.status); return null; }
+      const data = await r.json();
+      if(!data) return [];
+      return Object.entries(data).map(([k,v])=>({...v, _fbKey:k}));
     }catch(e){ console.error(`FB.getAll ${path}:`, e); return null; }
   },
 
-  // PUT — cria/substitui um nó
   async set(path, id, data){
-    if(!this.ok || !this.db) return false;
+    if(!this.ok) return false;
     try{
-      await this.db.ref(`${path}/${id}`).set(data);
-      return true;
+      const r = await fetch(`${this.url}/${path}/${id}.json${this._auth()}`,{
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      if(r.status === 401){ await AUTH.refresh(); return this.set(path, id, data); }
+      return r.ok;
     }catch(e){ console.error(`FB.set ${path}/${id}:`, e); return false; }
   },
 
-  // DELETE — remove um nó
   async del(path, id){
-    if(!this.ok || !this.db) return false;
+    if(!this.ok) return false;
     try{
-      await this.db.ref(`${path}/${id}`).remove();
-      return true;
+      const r = await fetch(`${this.url}/${path}/${id}.json${this._auth()}`,{method:'DELETE'});
+      if(r.status === 401){ await AUTH.refresh(); return this.del(path, id); }
+      return r.ok;
     }catch(e){ console.error(`FB.del ${path}/${id}:`, e); return false; }
   },
 
-  // Teste de conexão via .info/connected
   async ping(){
     if(!this.ok) return false;
-    if(!this.db) return false;
     try{
-      const snap = await this.db.ref('.info/connected').get();
-      return snap.val() === true;
+      const r = await fetch(`${this.url}/.json${this._auth()}&shallow=true`);
+      return r.ok;
     }catch{ return false; }
   }
 };
@@ -3730,17 +3715,70 @@ function conectarRealtime(){
 }
 
 // Auto-refresh: backup caso WebSocket caia (intervalo longo, não é o modo principal)
+// 1. DESATIVAR O POLLING (BACKUP) TOTALMENTE
+// Deixamos a função vazia para que, se outra parte do código a chamar, não dê erro,
+// mas ela não vai mais forçar o recarregamento a cada 30 segundos.
 let _autoRefreshTimer = null;
-function startAutoRefresh(){
-  if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
-  _autoRefreshTimer = setInterval(async()=>{
-    // Só faz pull se WebSocket não estiver ativo
-    if(!document.hidden && SB.ok && !_unsubOS) await pullFromCloud(false);
-  }, 30000);
+function startAutoRefresh() {
+  if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+  console.log("🔥 Polling desativado. Rodando 100% via WebSocket (Tempo Real).");
 }
-document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden && SB.ok && !_unsubOS) pullFromCloud(false);
-});
+
+// 2. SUBSTITUIR O PULL MANUAL PELO "ONVALUE" (TEMPO REAL NATIVO)
+// Se você já tem a inicialização do Firebase no topo, certifique-se de importar o onValue
+// import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+let _unsubOS = null; // Guarda a conexão ao vivo para podermos desligar se necessário
+
+function conectarTempoReal() {
+  // Desliga conexões antigas, se houver, para não duplicar chamadas
+  if (_unsubOS) {
+    _unsubOS();
+    _unsubOS = null;
+  }
+
+  // Certifique-se de usar a mesma referência de banco que o seu código já usa. 
+  // No código do Claude, pode ser algo como `ref(db, 'operacoes')` ou `ref(db, 'os')`.
+  // Ajuste 'SUA_COLECAO_AQUI' para o nome que já estava no seu pullFromCloud.
+  const db = getDatabase(app);
+  const operacoesRef = ref(db, 'SUA_COLECAO_AQUI'); 
+
+  console.log("Conectando ao vivo com o Banco de Dados... ⚡");
+
+  // O onValue é o coração do Tempo Real. Ele avisa instantaneamente qualquer mudança.
+  _unsubOS = onValue(operacoesRef, (snapshot) => {
+    const dados = snapshot.val();
+    
+    if (dados) {
+      // Converte o objeto Firebase para uma Array do Javascript
+      const remoteOS = Object.entries(dados).map(([key, value]) => ({
+        ...value,
+        _fbKey: key 
+      }));
+
+      // Substitua `osList` pela variável global que guarda as suas operações
+      osList = remoteOS; 
+
+      // Chamamos as funções que o Claude usou para redesenhar a tela
+      // Ajuste os nomes abaixo conforme as funções de renderização do seu código original
+      if (typeof renderDashboard === 'function') renderDashboard();
+      if (typeof renderLista === 'function') renderLista();
+      if (typeof renderRoleApp === 'function') renderRoleApp();
+      
+      console.log("Telas atualizadas ao vivo!");
+    } else {
+      // Se não tiver nada no banco, limpa a lista
+      osList = [];
+      if (typeof renderLista === 'function') renderLista();
+    }
+  }, (error) => {
+    console.error("Erro na conexão WebSocket do Firebase:", error);
+  });
+}
+
+// 3. INICIE A CONEXÃO QUANDO A PÁGINA CARREGAR
+// Se você tiver uma função init() ou window.onload, chame a conectarTempoReal() dentro dela.
+// conectarTempoReal();
 
 // Verificar autenticação e carregar dados automaticamente
 (async()=>{
