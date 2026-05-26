@@ -574,7 +574,7 @@ input[readonly]{background:#f8fafc;cursor:default;}
     <span class="hdr-date" id="hdr-date"></span>
     <span id="role-badge" class="role-badge" style="display:none"></span>
     <button class="btn btn-sm btn-logout" id="btn-logout" onclick="doLogout()" style="display:none;" title="Sair do sistema">⎋ Sair</button>
-    <div class="sb-dot-wrap" onclick="goTab('config')" title="Configurações Supabase">
+    <div class="sb-dot-wrap" onclick="goTab('config')" title="Configurações Firebase">
       <div class="sb-dot" id="sb-dot"></div>
       <span id="sb-label">Nuvem</span>
     </div>
@@ -1113,22 +1113,25 @@ input[readonly]{background:#f8fafc;cursor:default;}
       </div>
     </div>
     <button class="btn btn-p" onclick="salvarCodigos()">Salvar códigos</button>
-    <p style="font-size:.76rem;color:var(--mut);margin-top:8px">O código do Gestor é o e-mail + senha do Supabase. Apenas gestores podem alterar estes códigos.</p>
+    <p style="font-size:.76rem;color:var(--mut);margin-top:8px">O código do Gestor é o e-mail + senha do Firebase Authentication. Apenas gestores podem alterar estes códigos.</p>
   </div>
   <div class="settings-card">
-    <div class="card-title">☁ Conexão Supabase</div>
+    <div class="card-title">☁ Conexão Firebase</div>
     <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">
-      Configure abaixo para salvar todas as OS na nuvem. Crie um projeto gratuito em <a href="https://supabase.com" target="_blank" style="color:var(--p)">supabase.com</a> e execute o script SQL fornecido.
+      Crie um projeto gratuito em <a href="https://console.firebase.google.com" target="_blank" style="color:var(--p)">console.firebase.google.com</a> →
+      <b>Realtime Database</b> (criar banco) →
+      <b>Regras</b>: coloque <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px">".read":true,".write":true</code> →
+      <b>Configurações do projeto</b> → copie a <b>Database URL</b> e a <b>Web API Key</b> abaixo.
     </p>
     <div class="settings-row">
-      <div><label>URL do Projeto</label>
-        <input id="sb-url" placeholder="https://xxxx.supabase.co" type="url"/>
+      <div><label>Database URL</label>
+        <input id="sb-url" placeholder="https://seu-projeto-default-rtdb.firebaseio.com" type="url"/>
       </div>
-      <div><label>Anon Key (chave pública)</label>
-        <input id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." type="password"/>
+      <div><label>Web API Key (para login do Gestor)</label>
+        <input id="sb-key" placeholder="AIzaSy..." type="password"/>
       </div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-p" onclick="salvarSBConfig()">Salvar e testar conexão</button>
       <button class="btn btn-sec" onclick="limparSBConfig()">Desconectar</button>
       <button class="btn btn-grn" onclick="syncSupabase()">☁ Sincronizar agora</button>
@@ -1593,19 +1596,22 @@ const MESES    = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho',
 const KEY_OS   = 'os_v4';
 const KEY_PSS  = 'eq_v4';
 const KEY_PRE  = 'pre_v1';
-const KEY_SBU  = 'sb_url';
-const KEY_SBK  = 'sb_key';
+const KEY_SBU  = 'fb_db_url';   // Firebase Realtime Database URL
+const KEY_SBK  = 'fb_api_key';  // Firebase Web API Key (para Auth)
 const KEY_AUTH = 'os_auth_token';
+const KEY_REFR = 'os_refresh_token';
 
-// ── Credenciais Supabase pré-configuradas (hardcoded para deploy) ──
-const _SB_URL = 'https://gbvmojawdsmtxncpwghc.supabase.co';
-const _SB_KEY = 'sb_publishable_8BGnST_l3JASxX_n7Q_TfA_qSwHW-dD';
-// Garante que qualquer dispositivo use as credenciais corretas
-localStorage.setItem(KEY_SBU, _SB_URL);
-localStorage.setItem(KEY_SBK, _SB_KEY);
+// ── Credenciais Firebase pré-configuradas (hardcoded para deploy) ──
+// GESTOR: acesse console.firebase.google.com → Configurações do projeto
+// DB URL: https://SEU-PROJETO-default-rtdb.firebaseio.com
+// API Key: aparece em "Seu app" → firebaseConfig.apiKey
+const _FB_DB  = 'https://cortesia-os-default-rtdb.firebaseio.com';
+const _FB_KEY = 'AIzaSyDa55_tU1qXpyO6eBSJf-6LLFNKqlwkZWY';
+localStorage.setItem(KEY_SBU, _FB_DB);
+localStorage.setItem(KEY_SBK, _FB_KEY);
 
 // ═══════════════════════════════════════════════
-// AUTH — Supabase Authentication
+// AUTH — Firebase Authentication (REST, sem SDK)
 // ═══════════════════════════════════════════════
 const AUTH = {
   get token(){ return localStorage.getItem(KEY_AUTH)||''; },
@@ -1613,36 +1619,55 @@ const AUTH = {
   get logged(){ return !!localStorage.getItem(KEY_AUTH); },
 
   async signIn(email, pass){
-    const url = localStorage.getItem(KEY_SBU)||'';
-    const key = localStorage.getItem(KEY_SBK)||'';
-    if(!url||!key) return {error:'Configure a URL e Anon Key do Supabase em ⚙ Configurações antes de entrar.'};
+    const apiKey = localStorage.getItem(KEY_SBK)||'';
+    if(!apiKey || apiKey.startsWith('COLE_')) return {error:'Configure a Web API Key do Firebase em ⚙ Configurações antes de entrar.'};
     try{
-      const r = await fetch(`${url}/auth/v1/token?grant_type=password`,{
+      const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,{
         method:'POST',
-        headers:{'Content-Type':'application/json','apikey':key},
-        body:JSON.stringify({email, password:pass})
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, password:pass, returnSecureToken:true})
       });
       const data = await r.json();
-      if(!r.ok) return {error: data.error_description || data.msg || 'E-mail ou senha incorretos.'};
-      this.setToken(data.access_token);
+      if(!r.ok){
+        const msg = data.error?.message||'';
+        return {error: msg.includes('INVALID_PASSWORD')||msg.includes('EMAIL_NOT_FOUND')
+          ? 'E-mail ou senha incorretos.' : 'Falha de autenticação: '+msg};
+      }
+      this.setToken(data.idToken);
+      localStorage.setItem(KEY_REFR, data.refreshToken);
       return {ok:true};
-    }catch(e){ return {error:'Falha de conexão. Verifique sua internet e o Supabase.'}; }
+    }catch(e){ return {error:'Falha de conexão. Verifique sua internet.'}; }
   },
 
-  async verify(){
-    const token = this.token;
-    const url   = localStorage.getItem(KEY_SBU)||'';
-    const key   = localStorage.getItem(KEY_SBK)||'';
-    if(!token||!url||!key) return false;
+  // Renova token automaticamente (expira a cada 1h no Firebase)
+  async refresh(){
+    const refr = localStorage.getItem(KEY_REFR)||'';
+    const apiKey = localStorage.getItem(KEY_SBK)||'';
+    if(!refr||!apiKey) return false;
     try{
-      const r = await fetch(`${url}/auth/v1/user`,{
-        headers:{'apikey':key,'Authorization':'Bearer '+token}
+      const r = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:`grant_type=refresh_token&refresh_token=${refr}`
       });
-      return r.ok;
+      if(!r.ok) return false;
+      const data = await r.json();
+      this.setToken(data.id_token);
+      localStorage.setItem(KEY_REFR, data.refresh_token);
+      return true;
     }catch{ return false; }
   },
 
-  signOut(){ this.setToken(null); }
+  async verify(){
+    if(!this.token) return false;
+    // Token Firebase dura 1h — tenta refresh preventivo
+    return await this.refresh();
+  },
+
+  signOut(){
+    this.setToken(null);
+    localStorage.removeItem(KEY_REFR);
+  }
 };
 
 function showLogin(){
@@ -1668,7 +1693,7 @@ async function doLogin(){
   aplicarRole('gestor');
   hideLogin();
   toast('Bem-vindo, Gestor! ✓');
-  if(SB.ok){
+  if(FB.ok){
     toast('☁ Carregando dados da nuvem...','info');
     await pullFromCloud(true);
     startAutoRefresh();
@@ -1846,180 +1871,110 @@ function saveLocal(){
 }
 
 // ═══════════════════════════════════════════════
-// SUPABASE API
+// FIREBASE REALTIME DATABASE — REST API (sem SDK)
 // ═══════════════════════════════════════════════
-const SB = {
-  get url(){ return localStorage.getItem(KEY_SBU)||''; },
-  get key(){ return localStorage.getItem(KEY_SBK)||''; },
-  get ok(){  return !!(this.url && this.key); },
-  hdr(extra){
-    // apikey = chave pública do projeto (sempre enviada)
-    // Authorization = JWT do usuário logado (quando disponível)
-    const h = {
-      'Content-Type':'application/json',
-      'apikey': this.key,
-      'Prefer':'return=representation'
-    };
-    const token = AUTH.token;
-    if(token) h['Authorization'] = 'Bearer ' + token;
-    return Object.assign(h, extra||{});
+// Vantagens: nunca pausa, offline nativo, sem tabelas, sem RLS, JSON puro
+const FB = {
+  get url(){ return (localStorage.getItem(KEY_SBU)||'').replace(/\/$/,''); },
+  get ok(){  const u=this.url; return !!(u && !u.includes('COLE_')); },
+
+  // Retorna query string de autenticação: token do gestor ou vazio (regras públicas)
+  _auth(){
+    const t = AUTH.token;
+    return t ? `?auth=${encodeURIComponent(t)}` : '';
   },
-  async get(tbl, qs=''){
+
+  // GET todos os registros de um nó → retorna array ou null
+  async getAll(path){
     if(!this.ok) return null;
     try{
-      const r = await fetch(`${this.url}/rest/v1/${tbl}?${qs}`,{headers:this.hdr()});
-      if(!r.ok){ console.error(`SB.get ${tbl}:`, r.status, await r.text().catch(()=>'')); return null; }
-      return r.json();
-    }catch(e){ console.error(`SB.get ${tbl}:`,e); return null; }
+      const r = await fetch(`${this.url}/${path}.json${this._auth()}`);
+      if(r.status === 401){ await AUTH.refresh(); return this.getAll(path); }
+      if(!r.ok){ console.error(`FB.getAll ${path}:`, r.status); return null; }
+      const data = await r.json();
+      if(!data) return [];
+      // Firebase retorna objeto {key: value}; converter para array preservando a fbKey
+      return Object.entries(data).map(([fbKey, val]) => ({...val, _fbKey: fbKey}));
+    }catch(e){ console.error(`FB.getAll ${path}:`, e); return null; }
   },
-  async post(tbl, data){
-    if(!this.ok) return null;
-    try{
-      const r = await fetch(`${this.url}/rest/v1/${tbl}`,{method:'POST',headers:this.hdr(),body:JSON.stringify(data)});
-      if(!r.ok){ console.error(`SB.post ${tbl}:`, r.status, await r.text().catch(()=>'')); return null; }
-      return r.json();
-    }catch(e){ console.error(`SB.post ${tbl}:`,e); return null; }
-  },
-  async patch(tbl, filter, data){
+
+  // PUT — cria/substitui um nó pelo ID (idempotente)
+  async set(path, id, data){
     if(!this.ok) return false;
     try{
-      const r = await fetch(`${this.url}/rest/v1/${tbl}?${filter}`,{method:'PATCH',headers:this.hdr({'Prefer':'return=minimal'}),body:JSON.stringify(data)});
-      if(!r.ok){ console.error(`SB.patch ${tbl}:`, r.status, await r.text().catch(()=>'')); return false; }
-      return true;
-    }catch(e){ console.error(`SB.patch ${tbl}:`,e); return false; }
+      const r = await fetch(`${this.url}/${path}/${id}.json${this._auth()}`,{
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      if(r.status === 401){ await AUTH.refresh(); return this.set(path, id, data); }
+      return r.ok;
+    }catch(e){ console.error(`FB.set ${path}/${id}:`, e); return false; }
   },
-  async del(tbl, filter){
+
+  // DELETE — remove um nó pelo ID
+  async del(path, id){
     if(!this.ok) return false;
     try{
-      const r = await fetch(`${this.url}/rest/v1/${tbl}?${filter}`,{method:'DELETE',headers:this.hdr()});
-      if(!r.ok){ console.error(`SB.del ${tbl}:`, r.status, await r.text().catch(()=>'')); return false; }
-      return true;
-    }catch(e){ console.error(`SB.del ${tbl}:`,e); return false; }
+      const r = await fetch(`${this.url}/${path}/${id}.json${this._auth()}`,{method:'DELETE'});
+      if(r.status === 401){ await AUTH.refresh(); return this.del(path, id); }
+      return r.ok;
+    }catch(e){ console.error(`FB.del ${path}/${id}:`, e); return false; }
+  },
+
+  // GET valor único (para teste de conexão)
+  async ping(){
+    if(!this.ok) return false;
+    try{
+      const r = await fetch(`${this.url}/.json${this._auth()}&shallow=true`);
+      return r.ok;
+    }catch{ return false; }
   }
 };
 
+// Alias para compatibilidade com código existente que usa SB.ok
+const SB = { get ok(){ return FB.ok; } };
+
 async function syncSupabase(){
-  if(!SB.ok){ toast('Configure o Supabase primeiro.','err'); goTab('config'); return; }
+  if(!FB.ok){ toast('Configure o Firebase em ⚙ Configurações.','err'); goTab('config'); return; }
   toast('☁ Sincronizando...','info');
   await pullFromCloud(true);
 }
 
-function toSBRow(o){
-  // datas e equipe devem ser arrays reais (jsonb no Supabase), não strings JSON
-  const datas        = Array.isArray(o.datas)       ? o.datas       : (typeof o.datas==='string'       ? JSON.parse(o.datas||'[]')       : []);
-  const equipe       = Array.isArray(o.equipe)      ? o.equipe      : (typeof o.equipe==='string'      ? JSON.parse(o.equipe||'[]')      : []);
-  const atualizacoes = Array.isArray(o.atualizacoes)? o.atualizacoes: [];
-  const epi_checkin  = Array.isArray(o.epiCheckin)  ? o.epiCheckin  : (o.epiCheckin||null);
-  return {
-    numero_os:o.num, data:o.data,
-    datas,
-    regional:o.reg, responsavel:o.responsavel,
-    equipe,
-    usina:o.usina, tipo:o.tipo, grupo:o.grupo||null, prioridade:o.prioridade, status:o.status,
-    descricao:o.descricao, dt_conclusao_prevista:o.dtConc||null, dt_realizada:o.dtReal||null,
-    custo_previsto:o.custoP?parseFloat(o.custoP):null,
-    custo_real:o.custoR?parseFloat(o.custoR):null,
-    obs:o.obs||null,
-    // Campos novos (progresso + check-in)
-    atualizacoes,
-    dt_inicio_real: o.dtInicioReal||null,
-    epi_checkin,
-    obs_checkin: o.obsCheckin||null
-  };
-}
-function fromSBRow(r){
-  return {
-    id:   r.id,
-    sbId: r.id,
-    pendente: false,
-    num:r.numero_os, data:r.data,
-    datas: Array.isArray(r.datas)?r.datas:(typeof r.datas==='string'?JSON.parse(r.datas||'[]'):[]),
-    reg:r.regional, responsavel:r.responsavel,
-    equipe:Array.isArray(r.equipe)?r.equipe:(typeof r.equipe==='string'?JSON.parse(r.equipe||'[]'):[]),
-    usina:r.usina, tipo:r.tipo, grupo:r.grupo||'', prioridade:r.prioridade, status:r.status,
-    descricao:r.descricao, dtConc:r.dt_conclusao_prevista||'', dtReal:r.dt_realizada||'',
-    custoP:r.custo_previsto||'', custoR:r.custo_real||'', obs:r.obs||'', criadoEm:r.criado_em,
-    // Campos novos
-    atualizacoes: Array.isArray(r.atualizacoes)?r.atualizacoes:[],
-    dtInicioReal: r.dt_inicio_real||'',
-    epiCheckin:   r.epi_checkin||null,
-    obsCheckin:   r.obs_checkin||''
-  };
-}
-// Mapeia row do Supabase (equipe_membros) → objeto local
-function fromSBMembro(r){
-  return {
-    id: r.id, sbId: r.id,
-    nome: r.nome, func: r.funcao, reg: r.regional,
-    cor: r.cor||'#1d4ed8', ativo: r.ativo!==false,
-    status: r.status||'ativo', motivo: r.motivo||''
-  };
-}
+// Firebase armazena os objetos diretamente — sem conversão de colunas necessária
+function fbKey(o){ return 'os_' + String(o.id||Date.now()); }
+function fbKeyMembro(p){ return 'mb_' + (p.id||p.nome.replace(/[^a-zA-Z0-9]/g,'_')); }
 
 async function salvarOSremoto(o){
-  if(!SB.ok) return false;
-  const row = toSBRow(o);
-  // Se já temos o id do Supabase, usa PATCH direto — muito mais confiável
-  if(o.sbId){
-    const ok = await SB.patch('ordens_servico',`id=eq.${o.sbId}`,row);
-    return ok;
-  }
-  // Sem sbId: tenta buscar pelo numero_os para evitar duplicata
-  const existing = await SB.get('ordens_servico',`numero_os=eq.${encodeURIComponent(o.num)}&select=id`);
-  if(existing && existing.length){
-    o.sbId = existing[0].id;
-    const ok = await SB.patch('ordens_servico',`id=eq.${o.sbId}`,row);
-    return ok;
-  }
-  // Novo registro
-  const res = await SB.post('ordens_servico', row);
-  if(res && res[0]){
-    o.sbId = res[0].id;
-    o.pendente = false;
-    return true;
-  }
-  return false;
+  if(!FB.ok){ o.pendente = true; return false; }
+  const key = o._fbKey || fbKey(o);
+  o._fbKey = key;
+  const ok = await FB.set('ordens_servico', key, {...o, pendente:false, _fbKey:key});
+  if(ok) o.pendente = false;
+  else o.pendente = true;
+  return ok;
 }
-// ── Sync de membros da equipe ──────────────────────────────────
+
 async function salvarMembroRemoto(p){
-  if(!SB.ok) return false;
-  const row = { nome:p.nome, funcao:p.func, regional:p.reg, cor:p.cor||'#1d4ed8',
-                ativo:p.status==='ativo', status:p.status||'ativo', motivo:p.motivo||null };
-  if(p.sbId){
-    return await SB.patch('equipe_membros',`id=eq.${p.sbId}`,row);
-  }
-  const existing = await SB.get('equipe_membros',`nome=eq.${encodeURIComponent(p.nome)}&select=id`);
-  if(existing && existing.length){
-    p.sbId = existing[0].id; p.id = p.sbId;
-    return await SB.patch('equipe_membros',`id=eq.${p.sbId}`,row);
-  }
-  const res = await SB.post('equipe_membros',row);
-  if(res && res[0]){ p.sbId=res[0].id; p.id=p.sbId; return true; }
-  return false;
+  if(!FB.ok) return false;
+  const key = p._fbKey || fbKeyMembro(p);
+  p._fbKey = key;
+  return await FB.set('equipe_membros', key, {...p, _fbKey:key});
 }
+
 async function excluirMembroRemoto(p){
-  if(!SB.ok) return false;
-  if(!p.sbId){
-    const found = await SB.get('equipe_membros',`nome=eq.${encodeURIComponent(p.nome)}&select=id`);
-    if(found && found.length) p.sbId = found[0].id; else return false;
-  }
-  return await SB.del('equipe_membros',`id=eq.${p.sbId}`);
+  if(!FB.ok) return false;
+  const key = p._fbKey || fbKeyMembro(p);
+  return await FB.del('equipe_membros', key);
 }
 
 async function excluirOSremoto(o){
-  if(!SB.ok) return false;
-  // sbId = id real do Supabase; o.id é apenas referência local (float), nunca usar para DELETE
-  if(!o.sbId){
-    // Tenta buscar pelo número antes de desistir
-    const found = await SB.get('ordens_servico',`numero_os=eq.${encodeURIComponent(o.num)}&select=id`);
-    if(found && found.length) o.sbId = found[0].id;
-    else return false;
-  }
-  return await SB.del('ordens_servico',`id=eq.${o.sbId}`);
+  if(!FB.ok) return false;
+  const key = o._fbKey || fbKey(o);
+  return await FB.del('ordens_servico', key);
 }
 
 // ═══════════════════════════════════════════════
-// SUPABASE CONFIG UI
+// FIREBASE CONFIG UI
 // ═══════════════════════════════════════════════
 function setSBDot(ok){
   const d=document.getElementById('sb-dot');
@@ -2031,16 +1986,18 @@ function setSBDot(ok){
 async function salvarSBConfig(){
   const u=document.getElementById('sb-url').value.trim().replace(/\/$/,'');
   const k=document.getElementById('sb-key').value.trim();
-  if(!u||!k){ toast('Preencha URL e chave.','err'); return; }
-  localStorage.setItem(KEY_SBU,u); localStorage.setItem(KEY_SBK,k);
+  if(!u){ toast('Preencha a Database URL.','err'); return; }
+  localStorage.setItem(KEY_SBU, u);
+  if(k && !k.includes('(salvo)')) localStorage.setItem(KEY_SBK, k);
   updateSBStatusBox('Testando conexão...','idle');
-  const test = await SB.get('ordens_servico','select=count&limit=1');
-  if(test!==null){
-    updateSBStatusBox('✅ Conectado ao Supabase! Dados serão salvos na nuvem.','ok');
-    setSBDot(true); toast('Conexão estabelecida!');
+  const ok = await FB.ping();
+  if(ok){
+    updateSBStatusBox('✅ Conectado ao Firebase! Dados serão salvos e sincronizados automaticamente.','ok');
+    setSBDot(true); toast('Conexão com Firebase estabelecida!');
+    await pullFromCloud(true); startAutoRefresh(); conectarRealtime();
   } else {
-    updateSBStatusBox('❌ Falha na conexão. Verifique URL e chave.','err');
-    setSBDot(false); toast('Falha na conexão.','err');
+    updateSBStatusBox('❌ Falha. Verifique se a Database URL está correta e as regras permitem leitura.','err');
+    setSBDot(false); toast('Falha na conexão com Firebase.','err');
   }
 }
 function limparSBConfig(){
@@ -2057,7 +2014,7 @@ function initConfigTab(){
   const k=localStorage.getItem(KEY_SBK)||'';
   document.getElementById('sb-url').value=u;
   document.getElementById('sb-key').value=k?'(salvo)':'';
-  if(u&&k){ setSBDot(true); updateSBStatusBox('Supabase configurado. Clique em Sincronizar para atualizar.','ok'); }
+  if(u&&!u.includes('COLE_')){ setSBDot(true); updateSBStatusBox('Firebase configurado. Clique em Sincronizar para atualizar.','ok'); }
   document.getElementById('local-count').textContent=`${osList.length} OS · ${equipe.length} membros de equipe no armazenamento local.`;
   renderPinManager();
 }
@@ -3439,36 +3396,44 @@ carregarDadosIniciais();
 initForm();
 renderDashboard();
 
-// ── Pull completo do Supabase (fonte de verdade) ──────────────
+// ── Pull completo do Firebase (fonte de verdade) ──────────────
 async function pullFromCloud(showToast=true){
-  if(!SB.ok) return;
+  if(!FB.ok) return;
   setSBDot(null);
   // Busca OS e membros da equipe em paralelo
-  const [remote, remoteMembros] = await Promise.all([
-    SB.get('ordens_servico','select=*&order=data.desc'),
-    SB.get('equipe_membros','select=*&order=id.asc')
+  const [remoteOS, remoteMembros] = await Promise.all([
+    FB.getAll('ordens_servico'),
+    FB.getAll('equipe_membros')
   ]);
-  if(remote === null){
+  if(remoteOS === null){
     setSBDot(false);
-    if(showToast) toast('❌ Falha ao conectar com Supabase. Verifique a chave e a URL.','err');
+    if(showToast) toast('❌ Falha ao conectar com Firebase. Verifique a Database URL.','err');
     return;
   }
-  // Envia OS locais pendentes antes de sobrescrever
+  // Envia OS locais pendentes antes de sobrescrever (offline-first)
   const pendentes = osList.filter(o => o.pendente);
   for(const o of pendentes){
     const ok = await salvarOSremoto(o);
     if(ok) o.pendente = false;
   }
-  // Atualiza OS — sempre substitui pela versão do Supabase (fonte de verdade)
-  osList = remote.map(fromSBRow);
-  // Atualiza equipe com deduplicação por nome (protege contra duplicatas no DB)
+  // Firebase retorna objetos diretamente — sem conversão de colunas
+  if(remoteOS.length > 0){
+    osList = remoteOS.map(r => ({
+      ...r,
+      datas:       Array.isArray(r.datas)?r.datas:[],
+      equipe:      Array.isArray(r.equipe)?r.equipe:[],
+      atualizacoes:Array.isArray(r.atualizacoes)?r.atualizacoes:[],
+      pendente:    false
+    })).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  }
+  // Atualiza equipe com deduplicação por nome
   if(remoteMembros && remoteMembros.length){
     const seen = new Set();
     equipe = remoteMembros.filter(r => {
-      if(seen.has(r.nome.toLowerCase())) return false;
-      seen.add(r.nome.toLowerCase());
+      if(seen.has((r.nome||'').toLowerCase())) return false;
+      seen.add((r.nome||'').toLowerCase());
       return true;
-    }).map(fromSBMembro);
+    });
   }
   saveLocal();
   setSBDot(true);
@@ -3735,56 +3700,45 @@ function renderAnalise(){
   }
 }
 
-// ── Supabase Realtime (WebSocket) — atualizações instantâneas ──
-let _wsRealtime = null, _wsHeartbeat = null, _rtConectado = false;
+// ── Firebase Realtime — Server-Sent Events (SSE) ──
+// Firebase suporta streaming nativo: mudanças chegam em tempo real sem polling
+let _sseOS = null, _sseMb = null, _rtConectado = false;
 function _setRtIndicator(ok){
   _rtConectado = ok;
-  // Atualiza a bolinha de status: verde pulsando = realtime ativo
   const dot = document.querySelector('.sb-dot');
-  if(dot) dot.title = ok ? '🟢 Realtime ativo — atualizações instantâneas' : '🔵 Polling 10s';
+  if(dot) dot.title = ok ? '🟢 Firebase Realtime ativo' : '🔵 Aguardando conexão';
+}
+function _conectarSSE(path, onData){
+  const url = FB.url;
+  if(!url) return null;
+  const auth = AUTH.token ? `?auth=${encodeURIComponent(AUTH.token)}` : '';
+  try{
+    const es = new EventSource(`${url}/${path}.json${auth}`);
+    es.addEventListener('put', e => { try{ onData(JSON.parse(e.data)); }catch{} });
+    es.addEventListener('patch', e => { try{ onData(JSON.parse(e.data)); }catch{} });
+    es.onopen  = ()=> _setRtIndicator(true);
+    es.onerror = ()=>{ _setRtIndicator(false); es.close(); setTimeout(()=>conectarRealtime(), 8000); };
+    return es;
+  }catch{ return null; }
 }
 function conectarRealtime(){
-  if(!SB.ok || !AUTH.token) return;
-  if(_wsRealtime && _wsRealtime.readyState < 2) return; // já conectado/conectando
-  const wsUrl = _SB_URL.replace(/^https?:\/\//,'wss://') + '/realtime/v1/websocket?apikey=' + _SB_KEY + '&vsn=1.0.0';
-  try{ _wsRealtime = new WebSocket(wsUrl); }catch(e){ return; }
-  let _rtRef = 0;
-  _wsRealtime.onopen = ()=>{
-    clearInterval(_wsHeartbeat);
-    _rtRef++;
-    // Assina mudanças nas duas tabelas críticas
-    _wsRealtime.send(JSON.stringify({
-      topic:'realtime:db-changes', event:'phx_join',
-      payload:{
-        config:{
-          broadcast:{ack:false,self:false}, presence:{key:''},
-          postgres_changes:[
-            {event:'*',schema:'public',table:'ordens_servico'},
-            {event:'*',schema:'public',table:'equipe_membros'}
-          ]
-        },
-        access_token: AUTH.token||''
-      },
-      ref:String(_rtRef), join_ref:String(_rtRef)
-    }));
-    _wsHeartbeat = setInterval(()=>{
-      if(_wsRealtime?.readyState===1)
-        _wsRealtime.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:null}));
-    }, 25000);
+  if(!FB.ok) return;
+  if(_sseOS)  { _sseOS.close();  _sseOS = null; }
+  if(_sseMb)  { _sseMb.close();  _sseMb = null; }
+  // Escuta mudanças em OS — qualquer put/patch dispara re-pull
+  let _pulling = false;
+  const doPull = async ()=>{
+    if(_pulling) return; _pulling = true;
+    await pullFromCloud(false);
+    _pulling = false;
   };
-  _wsRealtime.onmessage = (e)=>{
-    try{
-      const msg = JSON.parse(e.data);
-      // Confirmação de subscrição
-      if(msg.event==='phx_reply' && msg.payload?.status==='ok'){ _setRtIndicator(true); return; }
-      // Mudança no banco de dados — atualiza imediatamente
-      if(msg.event==='postgres_changes' || (msg.payload?.data?.type && ['INSERT','UPDATE','DELETE'].includes(msg.payload.data.type))){
-        pullFromCloud(false);
-      }
-    }catch{}
-  };
-  _wsRealtime.onclose = ()=>{ clearInterval(_wsHeartbeat); _setRtIndicator(false); setTimeout(conectarRealtime,5000); };
-  _wsRealtime.onerror = ()=>{ _setRtIndicator(false); };
+  _sseOS = _conectarSSE('ordens_servico', doPull);
+  // Equipe: re-pull menos urgente (500ms debounce)
+  let _mbTimer = null;
+  _sseMb = _conectarSSE('equipe_membros', ()=>{
+    clearTimeout(_mbTimer);
+    _mbTimer = setTimeout(doPull, 500);
+  });
 }
 
 // Auto-refresh: polling a cada 15s — funciona para Gestor (AUTH.logged) e PIN users (USER_ROLE)
@@ -3994,7 +3948,7 @@ function mostrarRoleApp(role){
 // Sync manual acionado pelo botão 🔄 na topbar
 async function raSyncManual(){
   if(!SB.ok){
-    toast('Supabase não configurado.','err'); return;
+    toast('Firebase não configurado.','err'); return;
   }
   toast('🔄 Sincronizando...','info');
   await pullFromCloud(true);
