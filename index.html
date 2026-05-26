@@ -466,6 +466,9 @@ input[readonly]{background:#f8fafc;cursor:default;}
 .kb-del-btn{font-size:.65rem;background:#fee2e2;color:#991b1b;border:none;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:5px;margin-left:4px;display:inline-block;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase SDK — WebSocket nativo, sem spinner de loading -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -1694,10 +1697,9 @@ async function doLogin(){
   hideLogin();
   toast('Bem-vindo, Gestor! ✓');
   if(FB.ok){
-    toast('☁ Carregando dados da nuvem...','info');
-    await pullFromCloud(true);
-    startAutoRefresh();
+    toast('☁ Conectando ao Firebase...','info');
     conectarRealtime();
+    startAutoRefresh();
   }
 }
 
@@ -1724,51 +1726,6 @@ const ROLE_INFO = {
   lider:   { label:'🦺 Líder de Equipe',  cls:'role-lider'  },
   tecnico: { label:'🔧 Técnico',          cls:'role-tecnico' }
 };
-
-function selecionarPerfil(perfil){
-  _perfilSelecionado = perfil;
-  document.getElementById('lg-step1').style.display = 'none';
-  document.getElementById('lg-err').textContent = '';
-  if(perfil === 'gestor'){
-    document.getElementById('lg-step-gestor').style.display = '';
-    document.getElementById('lg-step-codigo').style.display = 'none';
-  } else {
-    document.getElementById('lg-step-gestor').style.display = 'none';
-    document.getElementById('lg-step-codigo').style.display = '';
-    document.getElementById('lg-perfil-label').textContent =
-      perfil === 'lider' ? '🦺 Acesso — Líder de Equipe' : '🔧 Acesso — Técnico/Operacional';
-    document.getElementById('lg-codigo').value = '';
-    setTimeout(()=>document.getElementById('lg-codigo').focus(), 100);
-  }
-}
-
-function voltarStep1(){
-  _perfilSelecionado = null;
-  document.getElementById('lg-step1').style.display = '';
-  document.getElementById('lg-step-gestor').style.display = 'none';
-  document.getElementById('lg-step-codigo').style.display = 'none';
-  document.getElementById('lg-err').textContent = '';
-}
-
-function doLoginCodigo(){
-  const codigo = (document.getElementById('lg-codigo').value||'').trim();
-  const errEl  = document.getElementById('lg-err');
-  if(!codigo){ errEl.textContent = 'Digite o código de acesso.'; return; }
-
-  const codLider   = localStorage.getItem(KEY_CODE_LIDER)   || 'lider123';
-  const codTecnico = localStorage.getItem(KEY_CODE_TECNICO)  || 'tec123';
-
-  let role = null;
-  if(_perfilSelecionado === 'lider'   && codigo === codLider)   role = 'lider';
-  if(_perfilSelecionado === 'tecnico' && codigo === codTecnico) role = 'tecnico';
-
-  if(!role){ errEl.textContent = 'Código incorreto. Verifique com seu gestor.'; return; }
-
-  aplicarRole(role);
-  hideLogin();
-  toast(`Bem-vindo! Acesso como ${ROLE_INFO[role].label} ✓`);
-  if(SB.ok){ pullFromCloud(false); startAutoRefresh(); }
-}
 
 function aplicarRole(role){
   USER_ROLE = role;
@@ -1871,67 +1828,73 @@ function saveLocal(){
 }
 
 // ═══════════════════════════════════════════════
-// FIREBASE REALTIME DATABASE — REST API (sem SDK)
+// FIREBASE SDK — WebSocket real-time (sem polling, sem spinner)
 // ═══════════════════════════════════════════════
-// Vantagens: nunca pausa, offline nativo, sem tabelas, sem RLS, JSON puro
+let _fbApp = null;
+let _fbDB  = null;
+
+function initFirebaseSDK(){
+  if(_fbDB) return true;
+  const dbUrl  = localStorage.getItem(KEY_SBU)||'';
+  const apiKey = localStorage.getItem(KEY_SBK)||'';
+  if(!dbUrl || dbUrl.includes('COLE_')) return false;
+  try{
+    if(!firebase.apps.length){
+      _fbApp = firebase.initializeApp({ apiKey, databaseURL: dbUrl });
+    } else {
+      _fbApp = firebase.app();
+    }
+    _fbDB = firebase.database();
+    return true;
+  }catch(e){ console.error('Firebase init:', e); return false; }
+}
+
 const FB = {
   get url(){ return (localStorage.getItem(KEY_SBU)||'').replace(/\/$/,''); },
   get ok(){  const u=this.url; return !!(u && !u.includes('COLE_')); },
-
-  // Retorna query string de autenticação: token do gestor ou vazio (regras públicas)
-  _auth(){
-    const t = AUTH.token;
-    return t ? `?auth=${encodeURIComponent(t)}` : '';
-  },
+  get db(){  return _fbDB || (initFirebaseSDK() ? _fbDB : null); },
 
   // GET todos os registros de um nó → retorna array ou null
   async getAll(path){
     if(!this.ok) return null;
+    if(!this.db) return null;
     try{
-      const r = await fetch(`${this.url}/${path}.json${this._auth()}`);
-      if(r.status === 401){ await AUTH.refresh(); return this.getAll(path); }
-      if(!r.ok){ console.error(`FB.getAll ${path}:`, r.status); return null; }
-      const data = await r.json();
-      if(!data) return [];
-      // Firebase retorna objeto {key: value}; converter para array preservando a fbKey
-      return Object.entries(data).map(([fbKey, val]) => ({...val, _fbKey: fbKey}));
+      const snap = await this.db.ref(path).get();
+      if(!snap.exists()) return [];
+      return Object.entries(snap.val()).map(([k,v])=>({...v, _fbKey:k}));
     }catch(e){ console.error(`FB.getAll ${path}:`, e); return null; }
   },
 
-  // PUT — cria/substitui um nó pelo ID (idempotente)
+  // PUT — cria/substitui um nó
   async set(path, id, data){
-    if(!this.ok) return false;
+    if(!this.ok || !this.db) return false;
     try{
-      const r = await fetch(`${this.url}/${path}/${id}.json${this._auth()}`,{
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      if(r.status === 401){ await AUTH.refresh(); return this.set(path, id, data); }
-      return r.ok;
+      await this.db.ref(`${path}/${id}`).set(data);
+      return true;
     }catch(e){ console.error(`FB.set ${path}/${id}:`, e); return false; }
   },
 
-  // DELETE — remove um nó pelo ID
+  // DELETE — remove um nó
   async del(path, id){
-    if(!this.ok) return false;
+    if(!this.ok || !this.db) return false;
     try{
-      const r = await fetch(`${this.url}/${path}/${id}.json${this._auth()}`,{method:'DELETE'});
-      if(r.status === 401){ await AUTH.refresh(); return this.del(path, id); }
-      return r.ok;
+      await this.db.ref(`${path}/${id}`).remove();
+      return true;
     }catch(e){ console.error(`FB.del ${path}/${id}:`, e); return false; }
   },
 
-  // GET valor único (para teste de conexão)
+  // Teste de conexão via .info/connected
   async ping(){
     if(!this.ok) return false;
+    if(!this.db) return false;
     try{
-      const r = await fetch(`${this.url}/.json${this._auth()}&shallow=true`);
-      return r.ok;
+      const snap = await this.db.ref('.info/connected').get();
+      return snap.val() === true;
     }catch{ return false; }
   }
 };
 
-// Alias para compatibilidade com código existente que usa SB.ok
+// Alias para compatibilidade
 const SB = { get ok(){ return FB.ok; } };
 
 async function syncSupabase(){
@@ -1994,7 +1957,7 @@ async function salvarSBConfig(){
   if(ok){
     updateSBStatusBox('✅ Conectado ao Firebase! Dados serão salvos e sincronizados automaticamente.','ok');
     setSBDot(true); toast('Conexão com Firebase estabelecida!');
-    await pullFromCloud(true); startAutoRefresh(); conectarRealtime();
+    await pullFromCloud(true); startAutoRefresh();
   } else {
     updateSBStatusBox('❌ Falha. Verifique se a Database URL está correta e as regras permitem leitura.','err');
     setSBDot(false); toast('Falha na conexão com Firebase.','err');
@@ -3700,57 +3663,83 @@ function renderAnalise(){
   }
 }
 
-// ── Firebase Realtime — Server-Sent Events (SSE) ──
-// Firebase suporta streaming nativo: mudanças chegam em tempo real sem polling
-let _sseOS = null, _sseMb = null, _rtConectado = false;
-function _setRtIndicator(ok){
-  _rtConectado = ok;
-  const dot = document.querySelector('.sb-dot');
-  if(dot) dot.title = ok ? '🟢 Firebase Realtime ativo' : '🔵 Aguardando conexão';
-}
-function _conectarSSE(path, onData){
-  const url = FB.url;
-  if(!url) return null;
-  const auth = AUTH.token ? `?auth=${encodeURIComponent(AUTH.token)}` : '';
-  try{
-    const es = new EventSource(`${url}/${path}.json${auth}`);
-    es.addEventListener('put', e => { try{ onData(JSON.parse(e.data)); }catch{} });
-    es.addEventListener('patch', e => { try{ onData(JSON.parse(e.data)); }catch{} });
-    es.onopen  = ()=> _setRtIndicator(true);
-    es.onerror = ()=>{ _setRtIndicator(false); es.close(); setTimeout(()=>conectarRealtime(), 8000); };
-    return es;
-  }catch{ return null; }
-}
+// ── Firebase SDK — listeners WebSocket em tempo real ──────────
+// O SDK usa WebSocket nativo: sem spinner de loading, sem polling.
+// Quando qualquer dispositivo grava no Firebase, TODOS recebem a mudança instantaneamente.
+let _unsubOS = null, _unsubMb = null;
+
 function conectarRealtime(){
   if(!FB.ok) return;
-  if(_sseOS)  { _sseOS.close();  _sseOS = null; }
-  if(_sseMb)  { _sseMb.close();  _sseMb = null; }
-  // Escuta mudanças em OS — qualquer put/patch dispara re-pull
-  let _pulling = false;
-  const doPull = async ()=>{
-    if(_pulling) return; _pulling = true;
-    await pullFromCloud(false);
-    _pulling = false;
-  };
-  _sseOS = _conectarSSE('ordens_servico', doPull);
-  // Equipe: re-pull menos urgente (500ms debounce)
-  let _mbTimer = null;
-  _sseMb = _conectarSSE('equipe_membros', ()=>{
-    clearTimeout(_mbTimer);
-    _mbTimer = setTimeout(doPull, 500);
+  if(!initFirebaseSDK()) return;
+
+  // Desconectar listeners anteriores
+  if(_unsubOS){ _fbDB.ref('ordens_servico').off('value', _unsubOS); _unsubOS = null; }
+  if(_unsubMb){ _fbDB.ref('equipe_membros').off('value', _unsubMb); _unsubMb = null; }
+
+  let _processingOS = false;
+
+  // Listener de OS — recebe push do Firebase sempre que algo muda
+  _unsubOS = _fbDB.ref('ordens_servico').on('value', async snap => {
+    if(_processingOS) return;
+    _processingOS = true;
+    try{
+      if(!snap.exists()){ setSBDot(true); _processingOS=false; return; }
+      const remoteOS = Object.entries(snap.val()).map(([k,v])=>({...v, _fbKey:k}));
+
+      // Enviar OS pendentes (criadas offline) antes de sobrescrever
+      const pendentes = osList.filter(o=>o.pendente);
+      for(const o of pendentes){ const ok=await salvarOSremoto(o); if(ok) o.pendente=false; }
+
+      osList = remoteOS.map(r=>({
+        ...r,
+        datas:       Array.isArray(r.datas)?r.datas:[],
+        equipe:      Array.isArray(r.equipe)?r.equipe:[],
+        atualizacoes:Array.isArray(r.atualizacoes)?r.atualizacoes:[],
+        pendente:    false
+      })).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+
+      // Reinserir pendentes que ainda não chegaram ao Firebase
+      for(const p of pendentes){
+        if(!osList.find(o=>o.id===p.id)) osList.unshift(p);
+      }
+      saveLocal();
+      renderDashboard(); renderLista(); renderHistorico(); renderKanban();
+      if(USER_ROLE==='lider'||USER_ROLE==='tecnico') renderRoleApp();
+      setSBDot(true);
+    }catch(e){ console.error('OS listener:', e); setSBDot(false); }
+    _processingOS = false;
+  }, err=>{ console.error('OS listener error:', err); setSBDot(false); });
+
+  // Listener de equipe — atualiza membros em tempo real
+  _unsubMb = _fbDB.ref('equipe_membros').on('value', snap => {
+    if(!snap.exists()) return;
+    const remoteMembros = Object.entries(snap.val()).map(([k,v])=>({...v, _fbKey:k}));
+    remoteMembros.forEach(r=>{
+      const idx = equipe.findIndex(e=>e.nome===r.nome);
+      if(idx>=0) equipe[idx]={...equipe[idx],...r};
+      else equipe.push(r);
+    });
+    saveLocal();
+    if(USER_ROLE==='gestor'){ renderEquipe(); }
+  });
+
+  // Indicador de conexão via .info/connected
+  _fbDB.ref('.info/connected').on('value', snap=>{
+    setSBDot(snap.val()===true ? true : null);
   });
 }
 
-// Auto-refresh: polling a cada 15s — funciona para Gestor (AUTH.logged) e PIN users (USER_ROLE)
+// Auto-refresh: backup caso WebSocket caia (intervalo longo, não é o modo principal)
 let _autoRefreshTimer = null;
 function startAutoRefresh(){
   if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   _autoRefreshTimer = setInterval(async()=>{
-    if(!document.hidden && SB.ok) await pullFromCloud(false);
-  }, 15000);
+    // Só faz pull se WebSocket não estiver ativo
+    if(!document.hidden && SB.ok && !_unsubOS) await pullFromCloud(false);
+  }, 30000);
 }
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden && SB.ok) pullFromCloud(false);
+  if(!document.hidden && SB.ok && !_unsubOS) pullFromCloud(false);
 });
 
 // Verificar autenticação e carregar dados automaticamente
@@ -3762,10 +3751,9 @@ document.addEventListener('visibilitychange', ()=>{
   } else if(authed === 'gestor'){
     hideLogin();
     if(SB.ok){
-      toast('☁ Carregando dados...','info');
-      await pullFromCloud(true);
-      startAutoRefresh();
+      toast('☁ Conectando ao Firebase...','info');
       conectarRealtime();
+      startAutoRefresh();
     }
   } else if(authed === 'restore'){
     // Mostrar tela de confirmação de sessão anterior
@@ -3787,7 +3775,7 @@ function sessionRestoreContinuar(){
   USER_PERSON = localStorage.getItem('cortesia_pessoa');
   const role = localStorage.getItem('cortesia_role');
   aplicarRole(role);
-  if(SB.ok){ pullFromCloud(false); startAutoRefresh(); }
+  if(SB.ok){ conectarRealtime(); startAutoRefresh(); }
   renderRoleApp();
 }
 
@@ -3927,7 +3915,7 @@ function concluirLoginPessoa(){
   aplicarRole(_perfilSelecionado);
   hideLogin();
   toast(`Bem-vindo, ${_pinPessoa.split(' ')[0]}! ✓`);
-  if(SB.ok){ pullFromCloud(false); startAutoRefresh(); }
+  if(SB.ok){ conectarRealtime(); startAutoRefresh(); }
   renderRoleApp();
 }
 
