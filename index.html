@@ -1700,6 +1700,7 @@ async function doLogin(){
 
 function doLogout(){
   if(!confirm('Deseja sair do sistema?')) return;
+  desconectarRealtime();
   AUTH.signOut();
   USER_ROLE = null;
   USER_PERSON = null;
@@ -1823,82 +1824,8 @@ function saveLocal(){
 }
 
 // ═══════════════════════════════════════════════
-// FIREBASE REALTIME DATABASE — SDK ao vivo + API REST de escrita
+// FIREBASE REALTIME DATABASE — REST + STREAMING AO VIVO
 // ═══════════════════════════════════════════════
-let _fbApp = null;
-let _fbDB  = null;
-let _fbDBUrl = '';
-let _fbSDKPromise = null;
-
-function loadScriptOnce(src){
-  const existing = [...document.scripts].find(s => s.src === src);
-  if(existing?.dataset.loaded === 'true') return Promise.resolve();
-  if(existing?.dataset.loading === 'true'){
-    return new Promise((resolve,reject)=>{
-      existing.addEventListener('load', resolve, {once:true});
-      existing.addEventListener('error', reject, {once:true});
-    });
-  }
-  return new Promise((resolve,reject)=>{
-    const s = existing || document.createElement('script');
-    s.src = src;
-    s.async = true;
-    s.dataset.loading = 'true';
-    s.onload = () => { s.dataset.loaded = 'true'; resolve(); };
-    s.onerror = () => reject(new Error('Falha ao carregar '+src));
-    if(!existing) document.head.appendChild(s);
-  });
-}
-
-async function ensureFirebaseSDK(){
-  if(typeof firebase !== 'undefined' && firebase.database) return true;
-  if(!_fbSDKPromise){
-    _fbSDKPromise = loadScriptOnce('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js')
-      .then(()=>loadScriptOnce('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js'))
-      .then(()=>true)
-      .catch(e=>{
-        console.error('Firebase SDK nao carregou:', e);
-        _fbSDKPromise = null;
-        return false;
-      });
-  }
-  return await _fbSDKPromise;
-}
-
-async function initFirebaseSDK(){
-  const databaseURL = (localStorage.getItem(KEY_SBU)||'').replace(/\/$/,'');
-  const apiKey = localStorage.getItem(KEY_SBK)||'';
-  if(!databaseURL || databaseURL.includes('COLE_')) return false;
-  if(!apiKey || apiKey.includes('(salvo)') || apiKey.startsWith('COLE_')) return false;
-  if(!await ensureFirebaseSDK()){
-    return false;
-  }
-  if(_fbDB && _fbDBUrl === databaseURL) return true;
-  try{
-    if(_fbDB){
-      desconectarRealtime();
-      try{ _fbDB.goOffline(); }catch{}
-      _fbDB = null;
-      _fbApp = null;
-    }
-    const appName = 'cortesia-os-' + databaseURL.replace(/[^a-zA-Z0-9]/g,'_').slice(0,80);
-    _fbApp = firebase.apps.find(a => a.name === appName);
-    if(!_fbApp){
-      _fbApp = firebase.initializeApp({ apiKey, databaseURL }, appName);
-    }
-    _fbDB = firebase.database(_fbApp);
-    _fbDBUrl = databaseURL;
-    _fbDB.goOnline();
-    return true;
-  }catch(e){
-    console.error('Falha ao inicializar Firebase SDK:', e);
-    _fbApp = null;
-    _fbDB = null;
-    _fbDBUrl = '';
-    return false;
-  }
-}
-
 const FB = {
   get url(){ return (localStorage.getItem(KEY_SBU)||'').replace(/\/$/,''); },
   get ok(){  const u=this.url; return !!(u && !u.includes('COLE_')); },
@@ -2023,6 +1950,7 @@ async function salvarSBConfig(){
   }
 }
 function limparSBConfig(){
+  desconectarRealtime();
   localStorage.removeItem(KEY_SBU); localStorage.removeItem(KEY_SBK);
   document.getElementById('sb-url').value=''; document.getElementById('sb-key').value='';
   updateSBStatusBox('Desconectado. Usando armazenamento local.','idle');
@@ -3722,9 +3650,10 @@ function renderAnalise(){
   }
 }
 
-// ── Firebase Realtime Database — conexao ao vivo (WebSocket) ──────────
-// Sem polling: as telas sao atualizadas quando o Firebase avisa que algo mudou.
-let _unsubOS = null, _unsubMb = null, _unsubConn = null;
+// ── Firebase Realtime Database — conexao ao vivo por REST Streaming ──────────
+// Sem polling e sem SDK externo: EventSource mantem uma conexao aberta com o Firebase.
+let _esOS = null, _esMb = null;
+let _rtOSMap = {}, _rtMembrosMap = {};
 let _pendingRemoteOS = null, _pendingRemoteMembros = null;
 
 function _modalAberto(){
@@ -3749,6 +3678,60 @@ function _normalizarMembrosRemotos(remoteMembros){
     seen.add(nome);
     return true;
   });
+}
+
+function _streamURL(path){
+  const token = AUTH.token;
+  const q = token ? `?auth=${encodeURIComponent(token)}` : '';
+  return `${FB.url}/${path}.json${q}`;
+}
+
+function _mapToList(map){
+  return Object.entries(map||{}).map(([k,v])=>({...v, _fbKey:k}));
+}
+
+function _setDeep(target, parts, data, merge){
+  const key = parts[0];
+  if(parts.length === 1){
+    if(data === null){ delete target[key]; return; }
+    if(merge && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key]) &&
+       data && typeof data === 'object' && !Array.isArray(data)){
+      target[key] = {...target[key], ...data};
+    } else {
+      target[key] = data;
+    }
+    return;
+  }
+  if(!target[key] || typeof target[key] !== 'object') target[key] = {};
+  _setDeep(target[key], parts.slice(1), data, merge);
+}
+
+function _applyStreamEvent(map, ev){
+  const payload = JSON.parse(ev.data || '{}');
+  const path = payload.path || '/';
+  const data = payload.data;
+  const parts = path.split('/').filter(Boolean);
+  const isPatch = ev.type === 'patch';
+
+  if(parts.length === 0){
+    if(!isPatch){
+      Object.keys(map).forEach(k=>delete map[k]);
+      if(data && typeof data === 'object') Object.assign(map, data);
+    } else if(data && typeof data === 'object') {
+      Object.entries(data).forEach(([k,v])=>{
+        if(v === null) delete map[k];
+        else if(map[k] && typeof map[k] === 'object' && v && typeof v === 'object' && !Array.isArray(v)){
+          map[k] = {...map[k], ...v};
+        } else {
+          map[k] = v;
+        }
+      });
+    }
+    return map;
+  }
+
+  _setDeep(map, parts, data, isPatch);
+  return map;
 }
 
 function _renderRealtimeViews(){
@@ -3801,80 +3784,90 @@ function flushPendingRealtime(){
 }
 
 function desconectarRealtime(){
-  if(_fbDB && _unsubOS)   _fbDB.ref('ordens_servico').off('value', _unsubOS);
-  if(_fbDB && _unsubMb)   _fbDB.ref('equipe_membros').off('value', _unsubMb);
-  if(_fbDB && _unsubConn) _fbDB.ref('.info/connected').off('value', _unsubConn);
-  _unsubOS = null;
-  _unsubMb = null;
-  _unsubConn = null;
+  if(_esOS){ _esOS.close(); _esOS = null; }
+  if(_esMb){ _esMb.close(); _esMb = null; }
 }
 
-async function conectarRealtime(){
-  if(!FB.ok) return;
-  if(!await initFirebaseSDK()){
+function _criarStream(path, onList){
+  const es = new EventSource(_streamURL(path));
+  const map = path === 'ordens_servico' ? _rtOSMap : _rtMembrosMap;
+
+  es.addEventListener('open', ()=>{
+    setSBDot(true);
+  });
+
+  ['put','patch'].forEach(type=>{
+    es.addEventListener(type, ev=>{
+      try{
+        _applyStreamEvent(map, ev);
+        onList(_mapToList(map));
+      }catch(e){
+        console.error(`Realtime ${path}:`, e);
+        setSBDot(false);
+      }
+    });
+  });
+
+  es.addEventListener('cancel', ev=>{
+    console.error(`Realtime ${path} cancelado:`, ev);
     setSBDot(false);
-    toast('Firebase em tempo real nao carregou. Verifique internet e configuracao.','err');
+    toast('Firebase recusou a conexao ao vivo. Verifique regras do Realtime Database.','err');
+  });
+
+  es.addEventListener('auth_revoked', async ()=>{
+    setSBDot(null);
+    const refreshed = await AUTH.refresh();
+    if(refreshed) conectarRealtime();
+    else setSBDot(false);
+  });
+
+  es.onerror = err=>{
+    // EventSource reconecta sozinho. Nao fazemos polling aqui.
+    console.warn(`Realtime ${path} reconectando...`, err);
+    setSBDot(null);
+  };
+
+  return es;
+}
+
+function conectarRealtime(){
+  if(!FB.ok) return;
+  if(typeof EventSource === 'undefined'){
+    toast('Este navegador nao suporta conexao ao vivo EventSource.','err');
     return;
   }
 
   desconectarRealtime();
   setSBDot(null);
+  _rtOSMap = {};
+  _rtMembrosMap = {};
 
   let firstOS = true;
-  _unsubOS = async snap => {
-    try{
-      const raw = snap.val() || {};
-      const remoteOS = Object.entries(raw).map(([k,v])=>({...v, _fbKey:k}));
-      const pendentes = osList.filter(o=>o.pendente);
-      for(const o of pendentes){
-        const ok = await salvarOSremoto(o);
-        if(ok) o.pendente = false;
-      }
-
-      const shouldApply = remoteOS.length > 0 || !firstOS || osList.length === 0;
-      firstOS = false;
-      if(!shouldApply){ setSBDot(true); return; }
-
-      const nextOS = _normalizarOSRemotas(remoteOS);
-      for(const p of pendentes){
-        if(!nextOS.find(o=>o.id===p.id)) nextOS.unshift(p);
-      }
-      _aplicarOSRealtime(nextOS);
-    }catch(e){
-      console.error('Realtime OS:', e);
-      setSBDot(false);
+  _esOS = _criarStream('ordens_servico', async remoteOS => {
+    const pendentes = osList.filter(o=>o.pendente);
+    for(const o of pendentes){
+      const ok = await salvarOSremoto(o);
+      if(ok) o.pendente = false;
     }
-  };
+
+    const shouldApply = remoteOS.length > 0 || !firstOS || osList.length === 0;
+    firstOS = false;
+    if(!shouldApply){ setSBDot(true); return; }
+
+    const nextOS = _normalizarOSRemotas(remoteOS);
+    for(const p of pendentes){
+      if(!nextOS.find(o=>o.id===p.id)) nextOS.unshift(p);
+    }
+    _aplicarOSRealtime(nextOS);
+  });
 
   let firstMembros = true;
-  _unsubMb = snap => {
-    try{
-      const raw = snap.val() || {};
-      const remoteMembros = Object.entries(raw).map(([k,v])=>({...v, _fbKey:k}));
-      const shouldApply = remoteMembros.length > 0 || !firstMembros || equipe.length === 0;
-      firstMembros = false;
-      if(!shouldApply){ setSBDot(true); return; }
-      _aplicarMembrosRealtime(_normalizarMembrosRemotos(remoteMembros));
-    }catch(e){
-      console.error('Realtime equipe:', e);
-      setSBDot(false);
-    }
-  };
-
-  _unsubConn = snap => {
-    setSBDot(snap.val() === true ? true : null);
-  };
-
-  _fbDB.ref('ordens_servico').on('value', _unsubOS, err=>{
-    console.error('Realtime OS error:', err);
-    setSBDot(false);
-    toast('Sem permissao/conexao para escutar OS em tempo real.','err');
+  _esMb = _criarStream('equipe_membros', remoteMembros => {
+    const shouldApply = remoteMembros.length > 0 || !firstMembros || equipe.length === 0;
+    firstMembros = false;
+    if(!shouldApply){ setSBDot(true); return; }
+    _aplicarMembrosRealtime(_normalizarMembrosRemotos(remoteMembros));
   });
-  _fbDB.ref('equipe_membros').on('value', _unsubMb, err=>{
-    console.error('Realtime equipe error:', err);
-    setSBDot(false);
-  });
-  _fbDB.ref('.info/connected').on('value', _unsubConn);
 }
 
 // Verificar autenticação e carregar dados automaticamente
